@@ -1,0 +1,2 @@
+#cloud-config
+${yamlencode({"write_files": write_files})}
