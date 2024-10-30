@@ -54,6 +54,7 @@ for addon in $(jq -c --raw-output 'to_entries | sort_by(.value.sort, .key)[]' /e
 			'--version' "${version}"
 			'--namespace' "${namespace}"
 			'--create-namespace'
+			'--kube-apiserver' "https://${CLUSTER_KAPI}:6443"
 		)
 		[[ "${should_wait:-}" == "true" ]] && HELM_ARGS+=("--wait")
 		echo "[$0][executing][$(date +%s)] helm ${HELM_ARGS[@]}"
