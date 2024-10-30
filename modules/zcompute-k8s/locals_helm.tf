@@ -19,9 +19,9 @@ locals {
       version         = "0.0.8"
       namespace       = "kube-system"
       config = {
-        args         = ["--v=2", "--cloud-provider=aws", "--allocate-node-cidrs=false", "--configure-cloud-routes=false", "--cloud-config=/zadara/cloud.conf"]
-        nodeSelector = { "node-role.kubernetes.io/control-plane" = "true" }
-        tolerations  = [{ effect = "NoSchedule", key = "", operator = "Exists" }, { effect = "NoExecute", key = "", operator = "Exists" }]
+        args              = ["--v=2", "--cloud-provider=aws", "--allocate-node-cidrs=false", "--configure-cloud-routes=false", "--cloud-config=/zadara/cloud.conf"]
+        nodeSelector      = { "node-role.kubernetes.io/control-plane" = "true" }
+        tolerations       = [{ effect = "NoSchedule", key = "", operator = "Exists" }, { effect = "NoExecute", key = "", operator = "Exists" }]
         extraVolumes      = [{ name = "cloud-config", configMap = { name = "cloud-config" } }]
         extraVolumeMounts = [{ mountPath = "/zadara", name = "cloud-config" }]
       }
@@ -97,9 +97,9 @@ locals {
         autoDiscovery = {
           clusterName = var.cluster_name
         }
-        cloudConfigPath = "/zadara/cloud.conf"
-        nodeSelector    = { "node-role.kubernetes.io/control-plane" = "true" }
-        tolerations     = [{ effect = "NoSchedule", key = "", operator = "Exists" }, { effect = "NoExecute", key = "", operator = "Exists" }]
+        cloudConfigPath   = "/zadara/cloud.conf"
+        nodeSelector      = { "node-role.kubernetes.io/control-plane" = "true" }
+        tolerations       = [{ effect = "NoSchedule", key = "", operator = "Exists" }, { effect = "NoExecute", key = "", operator = "Exists" }]
         extraVolumes      = [{ name = "cloud-config", configMap = { name = "cloud-config" } }]
         extraVolumeMounts = [{ mountPath = "/zadara", name = "cloud-config" }]
         extraArgs = {

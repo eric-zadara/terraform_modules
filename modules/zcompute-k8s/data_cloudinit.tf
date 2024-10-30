@@ -31,7 +31,7 @@ data "cloudinit_config" "k8s" {
           { path = "/etc/zadara/k8s.json", owner = "root:root", permissions = "0640", content = jsonencode({
             cluster_name    = var.cluster_name
             cluster_version = var.cluster_version
-            cluster_token   = coalesce(var.cluster_token, md5(join(",", [data.aws_vpc.this.arn, var.cluster_name])))
+            cluster_token   = coalesce(var.cluster_token, random_id.this.hex)
             cluster_role    = try(each.value.role, "worker")
             cluster_kapi    = aws_lb.kube_api.dns_name
           }) },

@@ -44,12 +44,12 @@ variable "tags" {
 
 variable "node_group_defaults" {
   description = "User-configurable defaults for all node groups"
-  type    = any
-  default = {}
+  type        = any
+  default     = {}
 }
 
 variable "node_groups" {
   description = "Configuration of scalable hosts with a designed configuration."
-  type    = any
-  default = {}
+  type        = any
+  default     = {}
 }
