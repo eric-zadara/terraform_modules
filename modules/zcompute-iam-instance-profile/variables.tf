@@ -27,7 +27,7 @@ variable "use_existing_role" {
 variable "role_name" {
   description = ""
   type        = string
-  default     = ""
+  default     = null
 }
 variable "role_description" {
   description = ""
@@ -50,7 +50,7 @@ variable "use_existing_policy" {
 variable "policy_name" {
   description = ""
   type        = string
-  default     = ""
+  default     = null
 }
 variable "policy_description" {
   description = ""
