@@ -4,6 +4,7 @@ CLUSTER_NAME="$(jq -c --raw-output '.cluster_name' /etc/zadara/k8s.json)"
 CLUSTER_ROLE="$(jq -c --raw-output '.cluster_role' /etc/zadara/k8s.json)"
 CLUSTER_VERSION="$(jq -c --raw-output '.cluster_version' /etc/zadara/k8s.json)"
 CLUSTER_KAPI="$(jq -c --raw-output '.cluster_kapi' /etc/zadara/k8s.json)"
+FEATURE_GATES="$(jq -c --raw-output '.feature_gates' /etc/zadara/k8s.json)"
 export K3S_TOKEN="$(jq -c --raw-output '.cluster_token' /etc/zadara/k8s.json)"
 export K3S_NODE_NAME=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
 
@@ -11,6 +12,7 @@ export K3S_NODE_NAME=$(curl -s http://169.254.169.254/latest/meta-data/instance-
 
 # Functions
 _log() { echo "[$(date +%s)][$0]$[@]" ; }
+_gate() { jq -e -c --raw-output --arg element "${1}" 'any(.[];.==$element)' <<< ${FEATURE_GATES} > /dev/null 2>&1; }
 wait-for-endpoint() {
 	# $1 should be http[s]://<target>:port
 	SLEEP=${SLEEP:-1}
@@ -97,13 +99,17 @@ case ${CLUSTER_ROLE} in
 			'server'
 			'--embedded-registry'
 			'--disable-cloud-controller' # Going to use AWS Cloud Controller Manager instead
-			'--disable=local-storage' # Using the helm chart instead
-			'--disable=servicelb' # Disabling servicelb to use proper LB
-			'--flannel-backend=none'
+			'--disable=local-storage' # Defaulting to EBS-CSI controller, can install local-storage helm chart if needed
+			'--disable=servicelb' # Disabling servicelb/klipper to use AWS Loadbalancer controller
+			'--flannel-backend=none' # Defaulting to calico chart
 			'--disable-network-policy'
-			'--node-taint' 'node-role.kubernetes.io/control-plane=:NoSchedule' # Prevent hosting things on the control plane
 			'--tls-san' "${CLUSTER_KAPI}"
 		)
+		if ! _gate "controlplane-workload"; then
+			SETUP_ARGS+=(
+				'--node-taint' 'node-role.kubernetes.io/control-plane=:NoSchedule' # Prevent hosting things on the control plane
+			)
+		fi
 		;;
 	"worker")
 		SETUP_ARGS+=(
