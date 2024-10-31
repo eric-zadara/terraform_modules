@@ -10,13 +10,14 @@ export K3S_NODE_NAME=$(curl -s http://169.254.169.254/latest/meta-data/instance-
 [ -n "${CLUSTER_VERSION}" ] && [ "${CLUSTER_VERSION}" != "null" ] && export INSTALL_K3S_VERSION="v${CLUSTER_VERSION}+k3s1"
 
 # Functions
+_log() { echo "[$(date +%s)][$0]$[@]" ; }
 wait-for-endpoint() {
 	# $1 should be http[s]://<target>:port
 	SLEEP=${SLEEP:-1}
 	until curl -k --head -s -o /dev/null "${1}" > /dev/null 2>&1; do
 		sleep ${SLEEP}s
 		[ $SLEEP -lt 10 ] && SLEEP=$((SLEEP + 1))
-		[ $SLEEP -ge 10 ] && echo "[$0][wait-for-endpoint] Waiting ${SLEEP}s for ${1}"
+		[ $SLEEP -ge 10 ] && _log "[wait-for-endpoint] Waiting ${SLEEP}s for ${1}"
 	done
 }
 wait-for-instance-profile() {
@@ -26,13 +27,13 @@ wait-for-instance-profile() {
 		[ $? -eq 0 ] && [ -n "${PROFILE_NAME:-}" ] && break
 		sleep ${SLEEP}s
 		[ $SLEEP -lt 10 ] && SLEEP=$((SLEEP + 1))
-		[ $SLEEP -ge 10 ] && echo "[$0][wait-for-instance-profile] Waiting ${SLEEP}s for profile name"
+		[ $SLEEP -ge 10 ] && _log "[wait-for-instance-profile] Waiting ${SLEEP}s for profile name"
 	done
 	
 	while ! curl -k --fail -s -o /dev/null http://169.254.169.254/latest/meta-data/iam/security-credentials/${PROFILE_NAME} > /dev/null 2>&1; do
 		sleep ${SLEEP}s
 		[ $SLEEP -lt 10 ] && SLEEP=$((SLEEP + 1))
-		[ $SLEEP -ge 10 ] && echo "[$0][wait-for-instance-profile] Waiting ${SLEEP}s for profile contents"
+		[ $SLEEP -ge 10 ] && _log "[wait-for-instance-profile] Waiting ${SLEEP}s for profile contents"
 	done
 }
 
