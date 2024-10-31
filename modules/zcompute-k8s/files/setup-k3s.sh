@@ -1,5 +1,11 @@
 #!/bin/bash
+# Ensure no race condition for configuration file
 until [ -e /etc/zadara/k8s.json ]; do sleep 1s ; done
+# # Install deps
+# Ubuntu packages
+[ -x "$(which apt-get)" ] && export DEBIAN_FRONTEND=noninteractive && apt-get -o Acquire::ForceIPv4=true -qq update && apt-get install -o Acquire::ForceIPv4=true -qq -y wget curl jq qemu-guest-agent unzip python3-pyudev python3-boto3 python3-retrying
+
+# Read configuration
 CLUSTER_NAME="$(jq -c --raw-output '.cluster_name' /etc/zadara/k8s.json)"
 CLUSTER_ROLE="$(jq -c --raw-output '.cluster_role' /etc/zadara/k8s.json)"
 CLUSTER_VERSION="$(jq -c --raw-output '.cluster_version' /etc/zadara/k8s.json)"
@@ -40,8 +46,6 @@ wait-for-instance-profile() {
 }
 
 # # Setup zCompute pre-reqs
-# Ubuntu packages
-[ -x "$(which apt-get)" ] && export DEBIAN_FRONTEND=noninteractive && apt-get -o Acquire::ForceIPv4=true -qq update && apt-get install -o Acquire::ForceIPv4=true -qq -y wget curl jq qemu-guest-agent unzip python3-pyudev python3-boto3 python3-retrying
 # Install AWS CLI
 curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip -qq awscliv2.zip && sudo ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update && rm awscliv2.zip && rm -r /aws
 # # Setup adjustments to support EBS CSI
