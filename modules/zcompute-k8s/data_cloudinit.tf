@@ -1,16 +1,4 @@
 locals {
-  setup_cfg = [
-    { filename = "cloud-config-00.yaml", content_type = "text/cloud-config", merge_type = "list(append)+dict(recurse_list,allow_delete)+str()", content = templatefile("${path.module}/cloud-init/write-files.tftpl.yaml", { write_files = [
-      { path = "/etc/zadara/k8s.json", owner = "root:root", permissions = "0640", content = jsonencode({
-        cluster_name    = var.cluster_name
-        cluster_version = var.cluster_version
-        cluster_token   = coalesce(var.cluster_token, random_id.this.hex)
-        cluster_role    = try(each.value.role, "worker")
-        cluster_kapi    = aws_lb.kube_api.dns_name
-      }) },
-      { enabled = (try(each.value.role, "worker") == "control"), path = "/etc/zadara/k8s_helm.json", owner = "root:root", permissions = "0640", content = jsonencode({ for k, v in merge(var.cluster_helm, local.cluster_helm_default) : k => v if v != null && try(v.enabled, true) == true }) },
-    ] }) },
-  ]
   cloudinit_cfg = {
     k3s-ubuntu = [
       { filename = "cloud-config-01.yaml", content_type = "text/cloud-config", merge_type = "list(append)+dict(recurse_list,allow_delete)+str()", content = templatefile("${path.module}/cloud-init/write-files.tftpl.yaml", { write_files = [
@@ -38,7 +26,19 @@ data "cloudinit_config" "k8s" {
 
   dynamic "part" {
     for_each = { for idx, obj in concat(
-      local.setup_cfg,
+      [
+        { filename = "cloud-config-00.yaml", content_type = "text/cloud-config", merge_type = "list(append)+dict(recurse_list,allow_delete)+str()", content = templatefile("${path.module}/cloud-init/write-files.tftpl.yaml", { write_files = [
+          { path = "/etc/zadara/k8s.json", owner = "root:root", permissions = "0640", content = jsonencode({
+            cluster_name    = var.cluster_name
+            cluster_version = var.cluster_version
+            cluster_token   = coalesce(var.cluster_token, random_id.this.hex)
+            cluster_role    = try(each.value.role, "worker")
+            cluster_kapi    = aws_lb.kube_api.dns_name
+            feature_gates   = try(each.value.feature_gates, [])
+          }) },
+          { enabled = (try(each.value.role, "worker") == "control"), path = "/etc/zadara/k8s_helm.json", owner = "root:root", permissions = "0640", content = jsonencode({ for k, v in merge(var.cluster_helm, local.cluster_helm_default) : k => v if v != null && try(v.enabled, true) == true }) },
+        ] }) },
+      ],
       local.cloudinit_cfg[try(each.value.cluster_flavor, var.cluster_flavor)],
       try(each.value.cloudinit_config, [])
     ) : idx => obj if try(obj.enabled, true) == false }
