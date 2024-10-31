@@ -19,14 +19,16 @@ locals {
       version         = "0.0.2"
       namespace       = "kube-system"
       config = {
-        traefik = {
-          namespace = "kube-system"
-          valuesContent = {
-            service = {
-              annotations = {
-                "service.beta.kubernetes.io/aws-load-balancer-scheme"          = "internet-facing"
-                "service.beta.kubernetes.io/aws-load-balancer-type"            = "external"
-                "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "instance"
+        config = {
+          traefik = {
+            namespace = "kube-system"
+            valuesContent = {
+              service = {
+                annotations = {
+                  "service.beta.kubernetes.io/aws-load-balancer-scheme"          = "internet-facing"
+                  "service.beta.kubernetes.io/aws-load-balancer-type"            = "external"
+                  "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "instance"
+                }
               }
             }
           }
