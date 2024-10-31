@@ -41,7 +41,7 @@ data "cloudinit_config" "k8s" {
       ],
       local.cloudinit_cfg[try(each.value.cluster_flavor, var.cluster_flavor)],
       try(each.value.cloudinit_config, [])
-    ) : idx => obj if try(obj.enabled, true) == false }
+    ) : idx => obj }
     content {
       filename     = part.value.filename
       content_type = part.value.content_type
