@@ -10,6 +10,29 @@ locals {
       namespace       = "kube-system"
       config          = {}
     }
+    traefik-elb = {
+      sort            = 0
+      wait            = true
+      repository_name = "zadara-charts"
+      repository_url  = "https://eric-zadara.github.io/helm_charts"
+      chart           = "k3s-helmchartconfig"
+      version         = "0.0.1"
+      namespace       = "kube-system"
+      config = {
+        traefik = {
+          namespace = "kube-system"
+          valuesContent = {
+            service = {
+              annotations = {
+                "service.beta.kubernetes.io/aws-load-balancer-scheme"          = "internet-facing"
+                "service.beta.kubernetes.io/aws-load-balancer-type"            = "external"
+                "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "instance"
+              }
+            }
+          }
+        }
+      }
+    }
     aws-cloud-controller-manager = {
       sort            = 1
       wait            = true
