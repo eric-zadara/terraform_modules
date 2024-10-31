@@ -6,7 +6,7 @@ locals {
       repository_name = "zadara-charts"
       repository_url  = "https://eric-zadara.github.io/helm_charts"
       chart           = "zadara-aws-config"
-      version         = "0.0.2"
+      version         = "0.0.3"
       namespace       = "kube-system"
       config          = {}
     }
@@ -16,7 +16,7 @@ locals {
       repository_name = "zadara-charts"
       repository_url  = "https://eric-zadara.github.io/helm_charts"
       chart           = "k3s-helmchartconfig"
-      version         = "0.0.1"
+      version         = "0.0.2"
       namespace       = "kube-system"
       config = {
         traefik = {
