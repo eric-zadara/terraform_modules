@@ -1,7 +1,7 @@
 #!/bin/bash
 IFS=$'\n'
 until [ -e /etc/zadara/k8s.json ]; do sleep 1s ; done
-_log() { echo "[$(date +%s)][$0]$[@]" ; }
+_log() { echo "[$(date +%s)][$0]${@}" ; }
 CLUSTER_NAME="$(jq -c --raw-output '.cluster_name' /etc/zadara/k8s.json)"
 CLUSTER_ROLE="$(jq -c --raw-output '.cluster_role' /etc/zadara/k8s.json)"
 CLUSTER_KAPI="$(jq -c --raw-output '.cluster_kapi' /etc/zadara/k8s.json)"
