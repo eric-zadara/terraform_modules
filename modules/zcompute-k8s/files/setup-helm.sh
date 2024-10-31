@@ -49,7 +49,8 @@ for addon in $(jq -c --raw-output 'to_entries | sort_by(.value.sort, .key)[]' /e
 	namespace=$(echo "${addon}" | jq -c --raw-output '.value.namespace')
 	config=$(echo "${addon}" | jq -c --raw-output '.value.config')
 	existing=$(helm list -A -o json | jq -c --raw-output --arg app_name "${id}" '.[]|select(.name==$app_name)')
-	if [[ -z "${existing}" || "$(echo "${existing}" | jq -c --raw-output '.chart')" != "${chart}-${version}" ]]; then
+	existing_config=$(helm get values "${id}" -n "${namespace}" -o json 2>/dev/null | jq -c --raw-output '.')
+	if [[ "$(echo "${existing}" | jq -c --raw-output '.chart')" != "${chart}-${version}" || "$(jq -c --raw-output --slurpfile a <(echo "${config}") --slurpfile b <(echo "${existing_config}") -n '$a == $b')" == "false" ]]; then
 		HELM_ARGS=(
 			'upgrade'
 			'--install' "${id}"
