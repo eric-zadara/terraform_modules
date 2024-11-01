@@ -1,4 +1,5 @@
 #!/bin/bash
+IFS=$'\n'
 # Ensure no race condition for configuration file
 until [ -e /etc/zadara/k8s.json ]; do sleep 1s ; done
 # # Install deps
@@ -11,6 +12,8 @@ CLUSTER_ROLE="$(jq -c --raw-output '.cluster_role' /etc/zadara/k8s.json)"
 CLUSTER_VERSION="$(jq -c --raw-output '.cluster_version' /etc/zadara/k8s.json)"
 CLUSTER_KAPI="$(jq -c --raw-output '.cluster_kapi' /etc/zadara/k8s.json)"
 FEATURE_GATES="$(jq -c --raw-output '.feature_gates' /etc/zadara/k8s.json)"
+NODE_LABELS=( $(jq -c --raw-output '.node_labels | to_entries[] | .key + "=" + .value' /etc/zadara/k8s.json | sort) )
+NODE_TAINTS=( $(jq -c --raw-output '.node_taints | to_entries[] | .key + "=" + .value' /etc/zadara/k8s.json | sort) )
 export K3S_TOKEN="$(jq -c --raw-output '.cluster_token' /etc/zadara/k8s.json)"
 export K3S_NODE_NAME=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
 
@@ -109,16 +112,10 @@ case ${CLUSTER_ROLE} in
 			'--disable-network-policy'
 			'--tls-san' "${CLUSTER_KAPI}"
 		)
-		if ! _gate "controlplane-workload"; then
-			SETUP_ARGS+=(
-				'--node-taint' 'node-role.kubernetes.io/control-plane=:NoSchedule' # Prevent hosting things on the control plane
-			)
-		fi
+		! _gate "controlplane-workload" && SETUP_ARGS+=('--node-taint' 'node-role.kubernetes.io/control-plane=:NoSchedule') # Prevent hosting things on the control plane
 		;;
 	"worker")
-		SETUP_ARGS+=(
-			'agent'
-		)
+		SETUP_ARGS+=('agent')
 		;;
 esac
 [[ $(lspci -n -d '10de:' | wc -l) -gt 0 ]] && SETUP_ARGS+=('--node-label' "k8s.amazonaws.com/accelerator=nvidia-tesla")
@@ -142,17 +139,18 @@ case ${SETUP_STATE} in
 		;;
 	"seed")
 		# TODO Configure S3 backup
-		SETUP_ARGS+=(
-			'--cluster-init'
-		)
+		SETUP_ARGS+=('--cluster-init')
 		;;
 	"join")
-		SETUP_ARGS+=(
-			'--server'
-			"https://${CLUSTER_KAPI}:6443"
-		)
+		SETUP_ARGS+=('--server' "https://${CLUSTER_KAPI}:6443")
 		# Wait to ensure CONTROL_PLANE is responsive
 		wait-for-endpoint "https://${CLUSTER_KAPI}:6443/cacerts"
 		;;
 esac
+for entry in ${NODE_LABELS[@]}; do
+	SETUP_ARGS+=( '--node-label' "${entry}" )
+done
+for entry in ${NODE_TAINTS[@]}; do
+	SETUP_ARGS+=( '--node-taint' "${entry}" )
+done
 curl -sfL https://get.k3s.io | sh -s - ${SETUP_ARGS[@]}

@@ -35,6 +35,8 @@ data "cloudinit_config" "k8s" {
             cluster_role    = try(each.value.role, "worker")
             cluster_kapi    = aws_lb.kube_api.dns_name
             feature_gates   = try(each.value.feature_gates, [])
+            node_labels     = try(each.value.k8s_labels, {})
+            node_taints     = try(each.value.k8s_taints, {})
           }) },
           { enabled = (try(each.value.role, "worker") == "control"), path = "/etc/zadara/k8s_helm.json", owner = "root:root", permissions = "0640", content = jsonencode({ for k, v in merge(var.cluster_helm, local.cluster_helm_default) : k => v if v != null && try(v.enabled, true) == true }) },
         ] }) },
