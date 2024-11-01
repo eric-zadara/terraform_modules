@@ -73,7 +73,7 @@ resource "aws_autoscaling_group" "worker" {
     content {
       key                 = tag.key
       value               = tag.value
-      propagate_at_launch = true
+      propagate_at_launch = (length(regexall(".*:.*", tag.key)) + length(regexall(".*:.*", tag.value)) == 0) # 12052
     }
   }
 }
