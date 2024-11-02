@@ -1,20 +1,22 @@
 locals {
   cloudinit_cfg = {
     k3s-ubuntu = [
-      { filename = "cloud-config-01.yaml", content_type = "text/cloud-config", merge_type = "list(append)+dict(recurse_list,allow_delete)+str()", content = templatefile("${path.module}/cloud-init/write-files.tftpl.yaml", { write_files = [
-        { path = "/etc/profile.d/k3s-kubeconfig.sh", owner = "root:root", permissions = "0644", content = file("${path.module}/files/k3s-kubeconfig.sh") },
-        { path = "/etc/profile.d/zadara-ec2.sh", owner = "root:root", permissions = "0644", content = file("${path.module}/files/zadara-ec2.sh") },
+      { order = 0, filename = "write-files-profile-d.yaml", content_type = "text/cloud-config", merge_type = "list(append)+dict(recurse_list,allow_delete)+str()",
+        content = templatefile("${path.module}/cloud-init/write-files.tftpl.yaml", { write_files = [
+          { path = "/etc/profile.d/k3s-kubeconfig.sh", owner = "root:root", permissions = "0644", content = file("${path.module}/files/k3s-kubeconfig.sh") },
+          { path = "/etc/profile.d/zadara-ec2.sh", owner = "root:root", permissions = "0644", content = file("${path.module}/files/zadara-ec2.sh") },
       ] }) },
-      { filename = "setup-01-k3s.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-k3s.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
-      { filename = "setup-02-helm.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-helm.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
+      { order = 10, filename = "setup-k3s.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-k3s.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
+      { order = 11, filename = "setup-helm.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-helm.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
     ]
     k3s-debian = [
-      { filename = "cloud-config-01.yaml", content_type = "text/cloud-config", merge_type = "list(append)+dict(recurse_list,allow_delete)+str()", content = templatefile("${path.module}/cloud-init/write-files.tftpl.yaml", { write_files = [
-        { path = "/etc/profile.d/k3s-kubeconfig.sh", owner = "root:root", permissions = "0644", content = file("${path.module}/files/k3s-kubeconfig.sh") },
-        { path = "/etc/profile.d/zadara-ec2.sh", owner = "root:root", permissions = "0644", content = file("${path.module}/files/zadara-ec2.sh") },
+      { order = 0, filename = "write-files-profile-d.yaml", content_type = "text/cloud-config", merge_type = "list(append)+dict(recurse_list,allow_delete)+str()",
+        content = templatefile("${path.module}/cloud-init/write-files.tftpl.yaml", { write_files = [
+          { path = "/etc/profile.d/k3s-kubeconfig.sh", owner = "root:root", permissions = "0644", content = file("${path.module}/files/k3s-kubeconfig.sh") },
+          { path = "/etc/profile.d/zadara-ec2.sh", owner = "root:root", permissions = "0644", content = file("${path.module}/files/zadara-ec2.sh") },
       ] }) },
-      { filename = "setup-01-k3s.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-k3s.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
-      { filename = "setup-02-helm.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-helm.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
+      { order = 10, filename = "setup-k3s.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-k3s.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
+      { order = 11, filename = "setup-helm.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-helm.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
     ]
   }
 }
@@ -27,7 +29,7 @@ data "cloudinit_config" "k8s" {
   dynamic "part" {
     for_each = { for idx, obj in concat(
       [
-        { filename = "cloud-config-00.yaml", content_type = "text/cloud-config", merge_type = "list(append)+dict(recurse_list,allow_delete)+str()", content = templatefile("${path.module}/cloud-init/write-files.tftpl.yaml", { write_files = [
+        { order = 0, filename = "write-files-k8s-json.yaml", content_type = "text/cloud-config", merge_type = "list(append)+dict(recurse_list,allow_delete)+str()", content = templatefile("${path.module}/cloud-init/write-files.tftpl.yaml", { write_files = [
           { path = "/etc/zadara/k8s.json", owner = "root:root", permissions = "0640", content = jsonencode({
             cluster_name    = var.cluster_name
             cluster_version = var.cluster_version
@@ -43,9 +45,10 @@ data "cloudinit_config" "k8s" {
       ],
       local.cloudinit_cfg[try(each.value.cluster_flavor, var.cluster_flavor)],
       try(each.value.cloudinit_config, [])
-    ) : idx => obj }
+    ) : join("-", [format("%02s", try(obj.order, 99)), obj.filename]) => obj }
     content {
-      filename     = part.value.filename
+      #filename     = part.value.filename
+      filename     = part.key
       content_type = part.value.content_type
       content      = part.value.content
       merge_type   = try(part.value.merge_type, "list(append)+dict(recurse_list,allow_delete)+str()")
