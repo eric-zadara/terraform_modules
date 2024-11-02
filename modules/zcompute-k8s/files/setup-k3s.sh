@@ -5,6 +5,7 @@ until [ -e /etc/zadara/k8s.json ]; do sleep 1s ; done
 # # Install deps
 # Ubuntu packages
 [ -x "$(which apt-get)" ] && export DEBIAN_FRONTEND=noninteractive && apt-get -o Acquire::ForceIPv4=true -qq update && apt-get install -o Acquire::ForceIPv4=true -qq -y wget curl jq qemu-guest-agent unzip python3-pyudev python3-boto3 python3-retrying
+[ ! -x "$(which yq)" ] && wget https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
 
 # Read configuration
 CLUSTER_NAME="$(jq -c --raw-output '.cluster_name' /etc/zadara/k8s.json)"
@@ -86,7 +87,7 @@ if [[ "${CLUSTER_ROLE}" == "control" ]] && ! curl -k --head -s -o /dev/null "htt
 			TEST_INSTANCE_DATA=$(aws ec2 describe-instances --instance-ids "${instance_id}" | jq -c --raw-output --arg instance_id "${instance_id}" '.Reservations[0].Instances[] | select(.InstanceId==$instance_id)')
 			TEST_LAUNCH_TIME=$(date -d $(echo "${TEST_INSTANCE_DATA}" | jq -c --raw-output '.LaunchTime') +%s)
 			TEST_STATE_CODE=$(echo "${TEST_INSTANCE_DATA}" | jq -c --raw-output '.State.Code')
-			[[ ${TEST_STATE_CODE} -ge 32 ]] && continue # Skip this node as it's shutting down
+			[[ ${TEST_STATE_CODE} -ge 32 ]] && continue # Skip this node as its shutting down
 			if [[ ${CONTROL_PLANE_LAUNCH} -gt ${TEST_LAUNCH_TIME} ]]; then
 				CONTROL_PLANE_LAUNCH=${TEST_LAUNCH_TIME}
 				CONTROL_PLANE_SEED=${instance_id}
@@ -153,4 +154,6 @@ done
 for entry in ${NODE_TAINTS[@]}; do
 	SETUP_ARGS+=( '--node-taint' "${entry}" )
 done
+# Augment or create /etc/rancher/k3s/registries.yaml configured for the embedded registry
+[ -e /etc/rancher/k3s/registries.yaml ] && yq -i -o yaml '.mirrors += {"*":{}}' /etc/rancher/k3s/registries.yaml || yq -n -o yaml '.mirrors += {"*":{}}' > /etc/rancher/k3s/registries.yaml
 curl -sfL https://get.k3s.io | sh -s - ${SETUP_ARGS[@]}
