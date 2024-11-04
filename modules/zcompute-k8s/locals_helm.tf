@@ -29,6 +29,9 @@ locals {
                   "service.beta.kubernetes.io/aws-load-balancer-type"            = "external"
                   "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "instance"
                 }
+                spec = {
+                  externalTrafficPolicy = "Local"
+                }
               }
             }
           }
