@@ -1,17 +1,17 @@
 locals {
   cluster_helm_default = {
     zadara-aws-config = {
-      sort            = 0
+      order           = 10
       wait            = true
       repository_name = "zadara-charts"
       repository_url  = "https://eric-zadara.github.io/helm_charts"
       chart           = "zadara-aws-config"
       version         = "0.0.3"
       namespace       = "kube-system"
-      config          = {}
+      config          = null
     }
     traefik-elb = {
-      sort            = 0
+      order           = 10
       wait            = true
       repository_name = "zadara-charts"
       repository_url  = "https://eric-zadara.github.io/helm_charts"
@@ -25,12 +25,32 @@ locals {
             valuesContent = {
               service = {
                 annotations = {
-                  "service.beta.kubernetes.io/aws-load-balancer-scheme"          = "internet-facing"
-                  "service.beta.kubernetes.io/aws-load-balancer-type"            = "external"
-                  "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type" = "instance"
+                  "service.beta.kubernetes.io/aws-load-balancer-backend-protocol" = "tcp"
+                  "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"  = "instance"
+                  "service.beta.kubernetes.io/aws-load-balancer-scheme"           = "internet-facing"
+                  "service.beta.kubernetes.io/aws-load-balancer-type"             = "external"
+                  "service.beta.kubernetes.io/aws-load-balancer-proxy-protocol"   = "*"
                 }
                 spec = {
                   externalTrafficPolicy = "Local"
+                }
+              }
+              ports = {
+                web = {
+                  proxyProtocol = {
+                    trustedIPs = sort([for key, obj in data.aws_subnet.selected : obj.cidr_block])
+                  }
+                  forwardedHeaders = {
+                    trustedIPs = sort([for key, obj in data.aws_subnet.selected : obj.cidr_block])
+                  }
+                }
+                websecure = {
+                  proxyProtocol = {
+                    trustedIPs = sort([for key, obj in data.aws_subnet.selected : obj.cidr_block])
+                  }
+                  forwardedHeaders = {
+                    trustedIPs = sort([for key, obj in data.aws_subnet.selected : obj.cidr_block])
+                  }
                 }
               }
             }
@@ -39,7 +59,7 @@ locals {
       }
     }
     aws-cloud-controller-manager = {
-      sort            = 1
+      order           = 11
       wait            = true
       repository_name = "cloud-provider-aws"
       repository_url  = "https://kubernetes.github.io/cloud-provider-aws"
@@ -55,7 +75,7 @@ locals {
       }
     }
     calico = {
-      sort            = 2
+      order           = 12
       wait            = true
       enabled         = true
       repository_name = "projectcalico",
@@ -66,7 +86,7 @@ locals {
       config          = { installation = { registry = "quay.io/" } }
     }
     aws-ebs-csi-driver = {
-      sort            = 3
+      order           = 13
       repository_name = "aws-ebs-csi-driver"
       repository_url  = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
       chart           = "aws-ebs-csi-driver"
@@ -114,7 +134,7 @@ locals {
       }
     }
     cluster-autoscaler = {
-      sort            = 4
+      order           = 14
       repository_name = "autoscaler"
       repository_url  = "https://kubernetes.github.io/autoscaler"
       chart           = "cluster-autoscaler"
@@ -136,7 +156,7 @@ locals {
       }
     }
     aws-load-balancer-controller = {
-      sort            = 5
+      order           = 15
       wait            = true
       repository_name = "eks-charts"
       repository_url  = "https://aws.github.io/eks-charts"

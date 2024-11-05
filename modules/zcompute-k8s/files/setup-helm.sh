@@ -41,7 +41,7 @@ for addon in $(jq -c --raw-output 'to_entries[] | {"repository_name": .value.rep
 	helm repo add "${repository_name}" "${repository_url}"
 done
 helm repo update
-for addon in $(jq -c --raw-output 'to_entries | sort_by(.value.sort, .key)[]' /etc/zadara/k8s_helm.json); do
+for addon in $(jq -c --raw-output 'to_entries | sort_by(.value.order, .key)[]' /etc/zadara/k8s_helm.json); do
 	id=$(echo "${addon}" | jq -c --raw-output '.key')
 	repository_name=$(echo "${addon}" | jq -c --raw-output '.value.repository_name')
 	chart=$(echo "${addon}" | jq -c --raw-output '.value.chart')
@@ -63,6 +63,8 @@ for addon in $(jq -c --raw-output 'to_entries | sort_by(.value.sort, .key)[]' /e
 		)
 		[[ "${should_wait:-}" == "true" ]] && HELM_ARGS+=("--wait")
 		_log "[executing] helm ${HELM_ARGS[@]}"
+		set -x
 		[[ "${config}" != "null" ]] && helm ${HELM_ARGS[@]} -f <(echo "${config}") || helm ${HELM_ARGS[@]}
+		set +x
 	fi
 done
