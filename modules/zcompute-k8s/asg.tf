@@ -23,7 +23,7 @@ resource "aws_autoscaling_group" "control" {
   desired_capacity     = each.value.desired_capacity
   max_size             = each.value.max_size
 
-  vpc_zone_identifier = var.subnets
+  vpc_zone_identifier = try(each.value.subnets, var.subnets)
 
   lifecycle {
     create_before_destroy = true
@@ -55,7 +55,7 @@ resource "aws_autoscaling_group" "worker" {
   desired_capacity     = each.value.desired_capacity
   max_size             = each.value.max_size
 
-  vpc_zone_identifier = var.subnets
+  vpc_zone_identifier = try(each.value.subnets, var.subnets)
 
   lifecycle {
     create_before_destroy = true
