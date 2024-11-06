@@ -16,29 +16,44 @@ locals {
     root_volume_type = null
     key_name         = null
     tags             = {}
+    feature_gates    = []
     security_group_rules = {
-      ingress_intracluster_allow = {
-        description = "Allow all intra-cluster ingress traffic"
-        protocol    = "all"
-        from_port   = 0
-        to_port     = 65535
-        type        = "ingress"
-        self        = true
-      }
-      egress_intracluster_allow = {
-        description = "Allow all intra-cluster egress traffic"
-        protocol    = "all"
-        from_port   = 0
-        to_port     = 65535
-        type        = "egress"
-        self        = true
-      }
+      #ingress_intracluster_allow = {
+      #  description = "Allow all intra-cluster ingress traffic"
+      #  protocol    = "all"
+      #  from_port   = 0
+      #  to_port     = 65535
+      #  type        = "ingress"
+      #  self        = true
+      #}
+      #egress_intracluster_allow = {
+      #  description = "Allow all intra-cluster egress traffic"
+      #  protocol    = "all"
+      #  from_port   = 0
+      #  to_port     = 65535
+      #  type        = "egress"
+      #  self        = true
+      #}
     }
   }
 
   node_groups = {
     for k, v in var.node_groups :
-    k => merge(local.node_group_defaults, var.node_group_defaults, v)
+    k => merge(
+      local.node_group_defaults,
+      var.node_group_defaults,
+      v,
+      { security_group_rules = merge(
+        lookup(local.node_group_defaults, "security_group_rules", {}),
+        lookup(var.node_group_defaults, "security_group_rules", {}),
+        lookup(v, "security_group_rules", {}),
+      ) },
+      { tags = merge(
+        lookup(local.node_group_defaults, "tags", {}),
+        lookup(var.node_group_defaults, "tags", {}),
+        lookup(v, "tags", {}),
+      ) },
+    )
   }
 
   node_groups_control = {
