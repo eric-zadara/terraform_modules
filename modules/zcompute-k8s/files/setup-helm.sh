@@ -63,8 +63,12 @@ for addon in $(jq -c --raw-output 'to_entries | sort_by(.value.order, .key)[]' /
 		)
 		[[ "${should_wait:-}" == "true" ]] && HELM_ARGS+=("--wait")
 		_log "[executing] helm ${HELM_ARGS[@]}"
-		set -x
-		[[ "${config}" != "null" ]] && helm ${HELM_ARGS[@]} -f <(echo "${config}") || helm ${HELM_ARGS[@]}
-		set +x
+		if [[ "${config}" != "null" ]]; then
+			false
+			until [ $? -eq 0 ]; do helm ${HELM_ARGS[@]} -f <(echo "${config}") ; done
+		else
+			false
+			until [ $? -eq 0 ]; do helm ${HELM_ARGS[@]} ; done
+		fi
 	fi
 done
