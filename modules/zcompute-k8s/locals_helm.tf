@@ -25,11 +25,13 @@ locals {
             valuesContent = {
               service = {
                 annotations = {
-                  "service.beta.kubernetes.io/aws-load-balancer-backend-protocol" = "tcp"
-                  "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"  = "instance"
-                  "service.beta.kubernetes.io/aws-load-balancer-scheme"           = "internet-facing"
-                  "service.beta.kubernetes.io/aws-load-balancer-type"             = "external"
-                  "service.beta.kubernetes.io/aws-load-balancer-proxy-protocol"   = "*"
+                  "service.beta.kubernetes.io/aws-load-balancer-backend-protocol"                    = "tcp"
+                  "service.beta.kubernetes.io/aws-load-balancer-nlb-target-type"                     = "instance"
+                  "service.beta.kubernetes.io/aws-load-balancer-scheme"                              = "internet-facing"
+                  "service.beta.kubernetes.io/aws-load-balancer-type"                                = "external"
+                  "service.beta.kubernetes.io/aws-load-balancer-proxy-protocol"                      = "*"
+                  "service.beta.kubernetes.io/aws-load-balancer-manage-backend-security-group-rules" = "false"
+                  "service.beta.kubernetes.io/aws-load-balancer-security-groups"                     = join(", ", concat([aws_security_group.k8s.id], [for obj in aws_security_group.k8s_extra : obj.id]))
                 }
                 spec = {
                   externalTrafficPolicy = "Local"
@@ -164,8 +166,13 @@ locals {
       version         = "1.7.2"
       namespace       = "kube-system"
       config = {
-        clusterName        = var.cluster_name
-        controllerConfig   = { SubnetsClusterTagCheck = false }
+        clusterName = var.cluster_name
+        controllerConfig = {
+          featureGates = {
+            ALBSingleSubnet        = true
+            SubnetsClusterTagCheck = false
+          }
+        }
         ingressClassConfig = { default = true }
         enableShield       = false
         enableWaf          = false
