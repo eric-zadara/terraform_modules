@@ -40,7 +40,12 @@ data "cloudinit_config" "k8s" {
             node_labels     = try(each.value.k8s_labels, {})
             node_taints     = try(each.value.k8s_taints, {})
           }) },
-          { enabled = (try(each.value.role, "worker") == "control"), path = "/etc/zadara/k8s_helm.json", owner = "root:root", permissions = "0640", content = jsonencode({ for k, v in merge(local.cluster_helm_default, var.cluster_helm) : k => merge(try(local.cluster_helm_default[k], {}), try(var.cluster_helm[k], {})) if v != null && try(v.enabled, true) == true }) },
+          { enabled = (try(each.value.role, "worker") == "control"), path = "/etc/zadara/k8s_helm.json", owner = "root:root", permissions = "0640",
+            content = jsonencode({ for k, v in merge(local.cluster_helm_default, var.cluster_helm) : k => merge(try(local.cluster_helm_default[k], {}), try(var.cluster_helm[k], {})) if v != null && try(v.enabled, true) == true })
+          },
+          { enabled = (try(each.value.role, "worker") == "control" && try(var.etcd_backup, null) != null), path = "/etc/zadara/etcd_backup.json", owner = "root:root", permissions = "0640",
+            content = jsonencode(var.etcd_backup)
+          },
         ] }) },
       ],
       local.cloudinit_cfg[try(each.value.cluster_flavor, var.cluster_flavor)],

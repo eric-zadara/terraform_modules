@@ -97,7 +97,13 @@ if [[ "${CLUSTER_ROLE}" == "control" ]] && ! curl -k --head -s -o /dev/null "htt
 	done
 	[[ "${CONTROL_PLANE_SEED}" == "${K3S_NODE_NAME}" ]] && SETUP_STATE="seed"
 fi
-# TODO If state is seed, check if there are any matching backups in object storage to recover with
+[ -e /etc/zadara/etcd_backup.json ] && export ETCD_JSON=( $(jq -c --raw-output 'to_entries[]' /etc/zadara/etcd_backup.json) ) || export ETCD_JSON=()
+[ ${#ETCD_JSON[@]} -gt 0 ] && export ETCD_RESTORE_PATH=$(jq -c --raw-output '.cluster-reset-restore-path' /etc/zadara/etcd_backup.json) || export ETCD_RESTORE_PATH="null"
+if [[ "${SETUP_STATE}" == "seed" && ${#ETCD_JSON[@]} -gt 0 && ( -z "${ETCD_RESTORE_PATH}" || "${ETCD_RESTORE_PATH}" != "null" ) ]]; then
+	_log "State is seed, etcd configuration has been specified, but no restore-path has been defined."
+	_log "TODO - Add flag to disable auto-restore" # TODO
+	_log "TODO - Validate etcd object-store is functional, see if any backups exist, select latest backup to restore with and set ETCD_RESTORE_PATH to it" # TODO
+fi
 
 # # Setup k3s
 SETUP_ARGS=()
@@ -126,20 +132,7 @@ SETUP_ARGS+=(
 	"--kubelet-arg=provider-id=aws:///symphony/${K3S_NODE_NAME}"
 )
 case ${SETUP_STATE} in
-	"recover")
-		# TODO Configure S3 restore
-		SETUP_ARGS+=(
-			'--cluster-init'
-			'--cluster-reset'
-			'--etcd-s3'
-			"--cluster-reset-restore-path=<SNAPSHOT-NAME>"
-			"--etcd-s3-bucket=<S3-BUCKET-NAME>"
-			"--etcd-s3-access-key=<S3-ACCESS-KEY>"
-			"--etcd-s3-secret-key=<S3-SECRET-KEY>"
-		)
-		;;
 	"seed")
-		# TODO Configure S3 backup
 		SETUP_ARGS+=('--cluster-init')
 		;;
 	"join")
@@ -148,6 +141,22 @@ case ${SETUP_STATE} in
 		wait-for-endpoint "https://${CLUSTER_KAPI}:6443/cacerts"
 		;;
 esac
+# Restore is seed with extra steps
+if [[ "CLUSTER_ROLE" == "control" ]]; then
+	[ "${SETUP_STATE}" == "seed" ] && [ -n "${ETCD_RESTORE_PATH}" ] && [ "${ETCD_RESTORE_PATH}" != "null" ] && SETUP_ARGS+=( '--cluster-reset' "--cluster-reset-restore-path=${ETCD_RESTORE_PATH}")
+	# These args are common to etcd backup and etcd restore
+	for entry in ${ETCD_JSON[@]}; do
+		key=$(echo "${entry}" | jq -c --raw-outpt '.key')
+		val=$(echo "${entry}" | jq -c --raw-outpt '.value')
+		# TODO Validate keys against a whitelist
+		[[ "${key}" == "cluster-reset-restore-path" ]] && continue
+		if [[ "${val}" == "true" ]]; then
+			SETUP_ARGS+=( "--etcd-${key}" )
+		else
+			SETUP_ARGS+=( "--etcd-${key}" "${val}" )
+		fi
+	done
+fi
 for entry in ${NODE_LABELS[@]}; do
 	SETUP_ARGS+=( '--node-label' "${entry}" )
 done
