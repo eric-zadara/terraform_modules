@@ -37,24 +37,24 @@ locals {
                   externalTrafficPolicy = "Local"
                 }
               }
-              ports = {
-                web = {
-                  proxyProtocol = {
-                    trustedIPs = sort([for key, obj in data.aws_subnet.selected : obj.cidr_block])
-                  }
-                  forwardedHeaders = {
-                    trustedIPs = sort([for key, obj in data.aws_subnet.selected : obj.cidr_block])
-                  }
-                }
-                websecure = {
-                  proxyProtocol = {
-                    trustedIPs = sort([for key, obj in data.aws_subnet.selected : obj.cidr_block])
-                  }
-                  forwardedHeaders = {
-                    trustedIPs = sort([for key, obj in data.aws_subnet.selected : obj.cidr_block])
-                  }
-                }
-              }
+              #ports = {
+              #  web = {
+              #    proxyProtocol = {
+              #      trustedIPs = sort([for key, obj in data.aws_subnet.selected : obj.cidr_block])
+              #    }
+              #    forwardedHeaders = {
+              #      trustedIPs = sort([for key, obj in data.aws_subnet.selected : obj.cidr_block])
+              #    }
+              #  }
+              #  websecure = {
+              #    proxyProtocol = {
+              #      trustedIPs = sort([for key, obj in data.aws_subnet.selected : obj.cidr_block])
+              #    }
+              #    forwardedHeaders = {
+              #      trustedIPs = sort([for key, obj in data.aws_subnet.selected : obj.cidr_block])
+              #    }
+              #  }
+              #}
             }
           }
         }
