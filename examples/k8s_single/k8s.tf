@@ -1,3 +1,14 @@
+variable "k8s_name" {
+  type = string
+  description = ""
+}
+
+variable "k8s_version" {
+  type = string
+  description = ""
+  default = "1.31.2"
+}
+
 module "vpc" {
   source = "github.com/eric-zadara/terraform_modules//modules/zcompute-k8s?ref=master"
   # It's recommended to change `master` to a specific release version to prevent unexpected changes
@@ -9,8 +20,8 @@ module "vpc" {
     my-tag = "my-value"
   }
 
-  cluster_name    = "my-single-node-cluster"
-  cluster_version = "1.31.2"
+  cluster_name    = var.k8s_name
+  cluster_version = var.k8s_version
   cluster_helm = {
     cluster-autoscaler = {
       enabled = false
