@@ -146,8 +146,8 @@ if [[ "${CLUSTER_ROLE}" == "control" ]]; then
 	[ "${SETUP_STATE}" == "seed" ] && [ -n "${ETCD_RESTORE_PATH}" ] && [ "${ETCD_RESTORE_PATH}" != "null" ] && SETUP_ARGS+=( '--cluster-reset' "--cluster-reset-restore-path=${ETCD_RESTORE_PATH}")
 	# These args are common to etcd backup and etcd restore
 	for entry in ${ETCD_JSON[@]}; do
-		key=$(echo "${entry}" | jq -c --raw-outpt '.key')
-		val=$(echo "${entry}" | jq -c --raw-outpt '.value')
+		key=$(echo "${entry}" | jq -c --raw-output '.key')
+		val=$(echo "${entry}" | jq -c --raw-output '.value')
 		# TODO Validate keys against a whitelist
 		[[ "${key}" == "cluster-reset-restore-path" ]] && continue
 		if [[ "${val}" == "true" ]]; then
