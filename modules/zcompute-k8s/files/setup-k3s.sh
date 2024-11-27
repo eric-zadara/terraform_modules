@@ -142,7 +142,7 @@ case ${SETUP_STATE} in
 		;;
 esac
 # Restore is seed with extra steps
-if [[ "CLUSTER_ROLE" == "control" ]]; then
+if [[ "${CLUSTER_ROLE}" == "control" ]]; then
 	[ "${SETUP_STATE}" == "seed" ] && [ -n "${ETCD_RESTORE_PATH}" ] && [ "${ETCD_RESTORE_PATH}" != "null" ] && SETUP_ARGS+=( '--cluster-reset' "--cluster-reset-restore-path=${ETCD_RESTORE_PATH}")
 	# These args are common to etcd backup and etcd restore
 	for entry in ${ETCD_JSON[@]}; do
