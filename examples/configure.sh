@@ -25,7 +25,7 @@ function wizard {
 			grep -s -qxF "# ${FILENAME}" "${TFVARS_FILE}" || echo "# ${FILENAME}" >> "${TFVARS_FILE}"
 		fi
 		for VAR in ${VARS[@]}; do
-			[ -e "${TFVARS_FILE}" ] && grep -Fxq "^$VAR =" "${TFVARS_FILE}" && continue
+			[ -e "${TFVARS_FILE}" ] && grep -qE "^$VAR +=" "${TFVARS_FILE}" && continue
 			CFG=$(awk -v VAR="${VAR}" '$0 ~ "variable \""VAR"\"",/^}/' "${FILENAME}")
 			DEFAULT=$(echo "$CFG" | awk -F'["]' '/default /{print $2}')
 			[ -n "${DEFAULT}" ] && continue
