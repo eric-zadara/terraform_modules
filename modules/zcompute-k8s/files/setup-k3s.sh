@@ -99,7 +99,7 @@ if [[ "${CLUSTER_ROLE}" == "control" ]] && ! curl -k --head -s -o /dev/null "htt
 	[[ "${CONTROL_PLANE_SEED}" == "${K3S_NODE_NAME}" ]] && SETUP_STATE="seed"
 fi
 [ -e /etc/zadara/etcd_backup.json ] && export ETCD_JSON=( $(jq -c --raw-output 'to_entries[]' /etc/zadara/etcd_backup.json) ) || export ETCD_JSON=()
-[ ${#ETCD_JSON[@]} -gt 0 ] && export ETCD_RESTORE_PATH=$(jq -c --raw-output '.cluster-reset-restore-path' /etc/zadara/etcd_backup.json) || export ETCD_RESTORE_PATH="null"
+[ ${#ETCD_JSON[@]} -gt 0 ] && export ETCD_RESTORE_PATH=$(jq -c --raw-output '.["cluster-reset-restore-path"]' /etc/zadara/etcd_backup.json) || export ETCD_RESTORE_PATH="null"
 if [[ "${SETUP_STATE}" == "seed" && ${#ETCD_JSON[@]} -gt 0 && ( -z "${ETCD_RESTORE_PATH}" || "${ETCD_RESTORE_PATH}" != "null" ) ]]; then
 	_log "State is seed, etcd configuration has been specified, but no restore-path has been defined."
 	_log "TODO - Add flag to disable auto-restore" # TODO
