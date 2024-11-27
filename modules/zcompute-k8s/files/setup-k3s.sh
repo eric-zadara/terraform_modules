@@ -151,7 +151,7 @@ if [[ "${CLUSTER_ROLE}" == "control" ]]; then
 		val=$(echo "${entry}" | jq -c --raw-output '.value')
 		[[ "${key}" == "cluster-reset-restore-path" ]] && continue
 		# TODO Validate keys against a whitelist
-		key="etcd-${key}" value="${value}" yq -i -o yaml '.[env(key)] = env(value)' /etc/rancher/k3s/config.yaml
+		key="etcd-${key}" val="${val}" yq -i -o yaml '.[env(key)] = env(val)' /etc/rancher/k3s/config.yaml
 	done
 fi
 for entry in ${NODE_LABELS[@]}; do
