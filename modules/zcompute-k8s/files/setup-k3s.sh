@@ -2,6 +2,7 @@
 IFS=$'\n'
 # Ensure no race condition for configuration file
 until [ -e /etc/zadara/k8s.json ]; do sleep 1s ; done
+[ ! -d /etc/rancher/k3s ] && mkdir -p /etc/rancher/k3s
 # # Install deps
 # Ubuntu packages
 [ -x "$(which apt-get)" ] && export DEBIAN_FRONTEND=noninteractive && apt-get -o Acquire::ForceIPv4=true -qq update && apt-get install -o Acquire::ForceIPv4=true -qq -y wget curl jq qemu-guest-agent unzip python3-pyudev python3-boto3 python3-retrying
@@ -144,17 +145,13 @@ esac
 # Restore is seed with extra steps
 if [[ "${CLUSTER_ROLE}" == "control" ]]; then
 	[ "${SETUP_STATE}" == "seed" ] && [ -n "${ETCD_RESTORE_PATH}" ] && [ "${ETCD_RESTORE_PATH}" != "null" ] && SETUP_ARGS+=( '--cluster-reset' "--cluster-reset-restore-path=${ETCD_RESTORE_PATH}")
-	# These args are common to etcd backup and etcd restore
+	touch /etc/rancher/k3s/config.yaml
 	for entry in ${ETCD_JSON[@]}; do
 		key=$(echo "${entry}" | jq -c --raw-output '.key')
 		val=$(echo "${entry}" | jq -c --raw-output '.value')
-		# TODO Validate keys against a whitelist
 		[[ "${key}" == "cluster-reset-restore-path" ]] && continue
-		if [[ "${val}" == "true" ]]; then
-			SETUP_ARGS+=( "--etcd-${key}" )
-		else
-			SETUP_ARGS+=( "--etcd-${key}" "${val}" )
-		fi
+		# TODO Validate keys against a whitelist
+		key="etcd-${key}" value="${value}" yq -i -o yaml '.[env(key)] = env(value)' /etc/rancher/k3s/config.yaml
 	done
 fi
 for entry in ${NODE_LABELS[@]}; do
