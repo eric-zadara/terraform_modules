@@ -38,6 +38,7 @@ until [ -e ${KUBECONFIG} ]; do sleep 1s ; done
 for addon in $(jq -c --raw-output 'to_entries[] | {"repository_name": .value.repository_name, "repository_url": .value.repository_url}' /etc/zadara/k8s_helm.json | sort -u); do
 	repository_name=$(echo "${addon}" | jq -c --raw-output '.repository_name')
 	repository_url=$(echo "${addon}" | jq -c --raw-output '.repository_url')
+	_log "helm repo add '${repository_name}' '${repository_url}'"
 	helm repo add "${repository_name}" "${repository_url}"
 done
 helm repo update
