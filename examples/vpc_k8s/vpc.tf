@@ -38,7 +38,5 @@ module "vpc" {
     "kubernetes.io/role/internal-elb" = 1
   }
 
-  tags = {
-    my-tag = "my-value"
-  }
+  tags = var.tags
 }

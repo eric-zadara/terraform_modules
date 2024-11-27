@@ -32,4 +32,6 @@ provider "aws" {
 
   access_key = var.zcompute_access_key
   secret_key = var.zcompute_secret_key
+
+  # default_tags behavior is glitchy and unreliable prior to aws provider v5
 }

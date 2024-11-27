@@ -30,7 +30,5 @@ module "vpc" {
 
   enable_nat_gateway = true
 
-  tags = {
-    my-tag = "my-value"
-  }
+  tags = var.tags
 }

@@ -16,9 +16,7 @@ module "vpc" {
   vpc_id  = module.vpc.vpc_id
   subnets = module.vpc.private_subnets
 
-  tags = {
-    my-tag = "my-value"
-  }
+  tags = var.tags
 
   cluster_name    = var.k8s_name
   cluster_version = var.k8s_version
