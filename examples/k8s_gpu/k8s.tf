@@ -25,7 +25,7 @@ module "k8s" {
       order           = 90
       wait            = true
       repository_name = "nvidia"
-      repository_url   = "https://helm.ngc.nvidia.com/nvidia"
+      repository_url  = "https://helm.ngc.nvidia.com/nvidia"
       chart           = "gpu-operator"
       version         = "v24.6.1"
       namespace       = "gpu-operator"

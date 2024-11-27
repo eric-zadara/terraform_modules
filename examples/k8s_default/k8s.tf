@@ -1,12 +1,12 @@
 variable "k8s_name" {
-  type = string
+  type        = string
   description = ""
 }
 
 variable "k8s_version" {
-  type = string
+  type        = string
   description = ""
-  default = "1.31.2"
+  default     = "1.31.2"
 }
 
 module "k8s" {
