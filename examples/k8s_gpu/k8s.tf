@@ -55,7 +55,7 @@ module "vpc" {
             }
           }
         }
-        nfs = { enabled = true }
+        nfd = { enabled = true }
         node-feature-discovery = {
           worker = {
             config = {
