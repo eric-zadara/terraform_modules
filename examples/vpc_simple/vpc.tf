@@ -14,7 +14,7 @@ module "vpc" {
 
   name           = var.vpc_name
   cidr           = var.vpc_cidr
-  az             = ["symphony"]
+  azs             = ["symphony"]
   public_subnets = [var.vpc_cidr]
 
   enable_nat_gateway = false

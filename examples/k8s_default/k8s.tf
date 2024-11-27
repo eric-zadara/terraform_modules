@@ -9,7 +9,7 @@ variable "k8s_version" {
   default = "1.31.2"
 }
 
-module "vpc" {
+module "k8s" {
   source = "github.com/eric-zadara/terraform_modules//modules/zcompute-k8s?ref=master"
   # It's recommended to change `master` to a specific release version to prevent unexpected changes
 

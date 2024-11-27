@@ -9,7 +9,7 @@ variable "k8s_version" {
   default     = "1.31.2"
 }
 
-module "vpc" {
+module "k8s" {
   source = "github.com/eric-zadara/terraform_modules//modules/zcompute-k8s?ref=master"
   # It's recommended to change `master` to a specific release version to prevent unexpected changes
 
@@ -25,7 +25,7 @@ module "vpc" {
       order           = 90
       wait            = true
       repository_name = "nvidia"
-      repositry_url   = "https://helm.ngc.nvidia.com/nvidia"
+      repository_url   = "https://helm.ngc.nvidia.com/nvidia"
       chart           = "gpu-operator"
       version         = "v24.6.1"
       namespace       = "gpu-operator"
@@ -114,7 +114,7 @@ module "vpc" {
       min_size      = 0
       max_size      = 3
       desired_size  = 1
-      instance_type = "A02.4xlarge"
+      instance_type = "A02.4xLarge"
       image_id      = flatten(data.aws_ami_ids.gpu-ubuntu[*].ids)[0]
       k8s_taints = {
         "nvidia.com/gpu" = "true:NoSchedule"
