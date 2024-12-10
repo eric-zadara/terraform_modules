@@ -83,9 +83,16 @@ locals {
       repository_name = "projectcalico",
       repository_url  = "https://docs.tigera.io/calico/charts"
       chart           = "tigera-operator"
-      version         = "v3.28.2"
+      version         = "v3.29.1"
       namespace       = "tigera-operator"
-      config          = { installation = { registry = "quay.io/" } }
+      config = {
+        installation = {
+          registry = "quay.io/"
+          calicoNetwork = {
+            containerIPForwarding = "Enabled"
+          }
+        }
+      }
     }
     aws-ebs-csi-driver = {
       order           = 13
