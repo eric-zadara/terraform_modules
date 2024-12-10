@@ -2,9 +2,9 @@
 IFS=$'\n'
 until [ -e /etc/zadara/k8s.json ]; do sleep 1s ; done
 _log() { echo "[$(date +%s)][$0]${@}" ; }
-CLUSTER_NAME="$(jq -c --raw-output '.cluster_name' /etc/zadara/k8s.json)"
-CLUSTER_ROLE="$(jq -c --raw-output '.cluster_role' /etc/zadara/k8s.json)"
-CLUSTER_KAPI="$(jq -c --raw-output '.cluster_kapi' /etc/zadara/k8s.json)"
+CLUSTER_NAME="$(jq -c -r '.cluster_name' /etc/zadara/k8s.json)"
+CLUSTER_ROLE="$(jq -c -r '.cluster_role' /etc/zadara/k8s.json)"
+CLUSTER_KAPI="$(jq -c -r '.cluster_kapi' /etc/zadara/k8s.json)"
 [ "${CLUSTER_ROLE}" != "control" ] && _log "[exit] Role(${CLUSTER_ROLE}) is not 'control'." && exit
 for x in '/etc/profile.d/k3s-kubeconfig.sh' '/etc/profile.d/zadara-ec2.sh'; do
 	until [ -e ${x} ]; do sleep 1s ; done
@@ -35,24 +35,24 @@ until [ -n "$(which kubectl)" ]; do sleep 1s ; done
 [ ! -e /etc/zadara/k8s_helm.json ] && _log "[exit] No helm manifest found." && exit
 
 until [ -e ${KUBECONFIG} ]; do sleep 1s ; done
-for addon in $(jq -c --raw-output 'to_entries[] | {"repository_name": .value.repository_name, "repository_url": .value.repository_url}' /etc/zadara/k8s_helm.json | sort -u); do
-	repository_name=$(echo "${addon}" | jq -c --raw-output '.repository_name')
-	repository_url=$(echo "${addon}" | jq -c --raw-output '.repository_url')
+for addon in $(jq -c -r 'to_entries[] | {"repository_name": .value.repository_name, "repository_url": .value.repository_url}' /etc/zadara/k8s_helm.json | sort -u); do
+	repository_name=$(echo "${addon}" | jq -c -r '.repository_name')
+	repository_url=$(echo "${addon}" | jq -c -r '.repository_url')
 	_log "helm repo add '${repository_name}' '${repository_url}'"
 	helm repo add "${repository_name}" "${repository_url}"
 done
 helm repo update
-for addon in $(jq -c --raw-output 'to_entries | sort_by(.value.order, .key)[]' /etc/zadara/k8s_helm.json); do
-	id=$(echo "${addon}" | jq -c --raw-output '.key')
-	repository_name=$(echo "${addon}" | jq -c --raw-output '.value.repository_name')
-	chart=$(echo "${addon}" | jq -c --raw-output '.value.chart')
-	should_wait=$(echo "${addon}" | jq -c --raw-output '.value.wait')
-	version=$(echo "${addon}" | jq -c --raw-output '.value.version')
-	namespace=$(echo "${addon}" | jq -c --raw-output '.value.namespace')
-	config=$(echo "${addon}" | jq -c --raw-output '.value.config')
-	existing=$(helm list -A -o json | jq -c --raw-output --arg app_name "${id}" '.[]|select(.name==$app_name)')
-	existing_config=$(helm get values "${id}" -n "${namespace}" -o json 2>/dev/null | jq -c --raw-output '.')
-	if [[ "$(echo "${existing}" | jq -c --raw-output '.chart')" != "${chart}-${version}" || "$(jq -c --raw-output --slurpfile a <(echo "${config}") --slurpfile b <(echo "${existing_config}") -n '$a == $b')" == "false" ]]; then
+for addon in $(jq -c -r 'to_entries | sort_by(.value.order, .key)[]' /etc/zadara/k8s_helm.json); do
+	id=$(echo "${addon}" | jq -c -r '.key')
+	repository_name=$(echo "${addon}" | jq -c -r '.value.repository_name')
+	chart=$(echo "${addon}" | jq -c -r '.value.chart')
+	should_wait=$(echo "${addon}" | jq -c -r '.value.wait')
+	version=$(echo "${addon}" | jq -c -r '.value.version')
+	namespace=$(echo "${addon}" | jq -c -r '.value.namespace')
+	config=$(echo "${addon}" | jq -c -r '.value.config')
+	existing=$(helm list -A -o json | jq -c -r --arg app_name "${id}" '.[]|select(.name==$app_name)')
+	existing_config=$(helm get values "${id}" -n "${namespace}" -o json 2>/dev/null | jq -c -r '.')
+	if [[ "$(echo "${existing}" | jq -c -r '.chart')" != "${chart}-${version}" || "$(jq -c -r --slurpfile a <(echo "${config}") --slurpfile b <(echo "${existing_config}") -n '$a == $b')" == "false" ]]; then
 		HELM_ARGS=(
 			'upgrade'
 			'--install' "${id}"

@@ -1,5 +1,5 @@
 #!/bin/sh
-export AWS_ENDPOINT_URL=$(curl -s http://169.254.169.254/openstack/latest/meta_data.json | jq -c --raw-output '.cluster_url')
+export AWS_ENDPOINT_URL=$(curl -s http://169.254.169.254/openstack/latest/meta_data.json | jq -c -r '.cluster_url')
 export AWS_ENDPOINT_URL_EC2=${AWS_ENDPOINT_URL}/api/v2/aws/ec2/
 #export AWS_ENDPOINT_URL_ELASTIC_LOAD_BALANCING=${AWS_ENDPOINT_URL}/api/v2/aws/elbv2/
 export AWS_ENDPOINT_URL_ELASTIC_LOAD_BALANCING_V2=${AWS_ENDPOINT_URL}/api/v2/aws/elbv2/
