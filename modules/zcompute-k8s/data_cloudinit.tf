@@ -5,6 +5,7 @@ locals {
         content = templatefile("${path.module}/cloud-init/write-files.tftpl.yaml", { write_files = [
           { path = "/etc/profile.d/k3s-kubeconfig.sh", owner = "root:root", permissions = "0644", content = file("${path.module}/files/k3s-kubeconfig.sh") },
           { path = "/etc/profile.d/zadara-ec2.sh", owner = "root:root", permissions = "0644", content = file("${path.module}/files/zadara-ec2.sh") },
+          { path = "/etc/rancher/k3s/kubelet.config", owner = "root:root", permissions = "0644", content = file("${path.module}/files/kubelet.config") },
       ] }) },
       { order = 10, filename = "setup-k3s.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-k3s.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
       { order = 11, filename = "setup-helm.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-helm.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
@@ -14,6 +15,7 @@ locals {
         content = templatefile("${path.module}/cloud-init/write-files.tftpl.yaml", { write_files = [
           { path = "/etc/profile.d/k3s-kubeconfig.sh", owner = "root:root", permissions = "0644", content = file("${path.module}/files/k3s-kubeconfig.sh") },
           { path = "/etc/profile.d/zadara-ec2.sh", owner = "root:root", permissions = "0644", content = file("${path.module}/files/zadara-ec2.sh") },
+          { path = "/etc/rancher/k3s/kubelet.config", owner = "root:root", permissions = "0644", content = file("${path.module}/files/kubelet.config") },
       ] }) },
       { order = 10, filename = "setup-k3s.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-k3s.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
       { order = 11, filename = "setup-helm.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-helm.sh")) : line if length(regexall("^# .*$", line)) == 0]) },

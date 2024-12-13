@@ -2,7 +2,7 @@
 IFS=$'\n'
 # Ensure no race condition for configuration file
 until [ -e /etc/zadara/k8s.json ]; do sleep 1s ; done
-[ ! -d /etc/rancher/k3s ] && mkdir -p /etc/rancher/k3s/config.yaml.d
+[ ! -d /etc/rancher/k3s ] && mkdir -p /etc/rancher/k3s
 # # Install deps
 # Ubuntu packages
 [ -x "$(which apt-get)" ] && export DEBIAN_FRONTEND=noninteractive && apt-get -o Acquire::ForceIPv4=true -qq update && apt-get install -o Acquire::ForceIPv4=true -qq -y wget curl jq qemu-guest-agent unzip python3-pyudev python3-boto3 python3-retrying
@@ -128,21 +128,19 @@ case ${CLUSTER_ROLE} in
 		)
 		! _gate "enable-cloud-controller" && set-cfg 'disable-cloud-controller' "true" # Going to use AWS Cloud Controller Manager instead
 		! _gate "enable-servicelb" && SETUP_ARGS+=('--disable=servicelb') # Disabling servicelb/klipper to use AWS Loadbalancer controller
-		#! _gate "controlplane-workload" && SETUP_ARGS+=('--node-taint' 'node-role.kubernetes.io/control-plane=:NoSchedule') # Prevent hosting things on the control plane
 		! _gate "controlplane-workload" && NODE_TAINTS+=('node-role.kubernetes.io/control-plane=:NoSchedule') # Prevent hosting things on the control plane
 		;;
 	"worker")
 		SETUP_ARGS+=('agent')
 		;;
 esac
-#[[ $(lspci -n -d '10de:' | wc -l) -gt 0 ]] && SETUP_ARGS+=('--node-label' "k8s.amazonaws.com/accelerator=nvidia-tesla")
 [[ $(lspci -n -d '10de:' | wc -l) -gt 0 ]] && NODE_LABELS+=('k8s.amazonaws.com/accelerator=nvidia-tesla')
 NODE_TAINTS+=('ebs.csi.aws.com/agent-not-ready=:NoExecute')
 SETUP_ARGS+=(
 	'--kubelet-arg=cloud-provider=external'
 	"--kubelet-arg=provider-id=aws:///symphony/${K3S_NODE_NAME}"
 )
-#	'--node-taint' 'ebs.csi.aws.com/agent-not-ready=:NoExecute' # Prevent EBS CSI driver race conditions
+[ -e '/etc/rancher/k3s/kubelet.config' ] && SETUP_ARGS+=( "--kubelet-arg=config=/etc/rancher/k3s/kubelet.config" )
 case ${SETUP_STATE} in
 	"seed")
 		set-cfg "cluster-init" "true"
