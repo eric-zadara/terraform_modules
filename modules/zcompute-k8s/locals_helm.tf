@@ -82,7 +82,7 @@ locals {
     calico = {
       order           = 12
       wait            = true
-      enabled         = true
+      enabled         = false
       repository_name = "projectcalico",
       repository_url  = "https://docs.tigera.io/calico/charts"
       chart           = "tigera-operator"
@@ -93,11 +93,25 @@ locals {
           registry = "quay.io/"
           calicoNetwork = {
             containerIPForwarding = "Enabled"
+            bgp                   = "Enabled"
+            ipPools               = [{ cidr = var.pod_cidr }]
           }
-          cni = {
-            type = "Calico"
-          }
+          cni          = { type = "Calico" }
+          serviceCIDRs = [var.service_cidr]
         }
+      }
+    }
+    flannel = {
+      order           = 12
+      wait            = true
+      enabled         = true
+      repository_name = "flannel",
+      repository_url  = "https://flannel-io.github.io/flannel"
+      chart           = "flannel"
+      version         = "v0.26.2"
+      namespace       = "kube-flannel"
+      config = {
+        podCidr = var.pod_cidr
       }
     }
     aws-ebs-csi-driver = {
