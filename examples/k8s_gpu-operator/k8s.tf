@@ -114,7 +114,7 @@ module "k8s" {
       min_size      = 0
       max_size      = 3
       desired_size  = 1
-      instance_type = "A02.4xLarge"
+      instance_type = "A02.4xLarge" # TODO Adjust to formalized instance_type name
       image_id      = flatten(data.aws_ami_ids.gpu-ubuntu[*].ids)[0]
       k8s_taints = {
         "nvidia.com/gpu" = "true:NoSchedule"
