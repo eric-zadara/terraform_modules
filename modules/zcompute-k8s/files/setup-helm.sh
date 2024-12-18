@@ -11,7 +11,7 @@ INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
 LABEL_MUTEX="dev.zadara/setup-helm"
 
 [ "${CLUSTER_ROLE}" != "control" ] && _log "[exit] Role(${CLUSTER_ROLE}) is not 'control'." && exit
-for x in '/etc/profile.d/k3s-kubeconfig.sh' '/etc/profile.d/zadara-ec2.sh'; do
+for x in '/etc/profile.d/kubeconfig.sh' '/etc/profile.d/zadara-ec2.sh'; do
 	until [ -e ${x} ]; do sleep 1s ; done
 	source ${x}
 done

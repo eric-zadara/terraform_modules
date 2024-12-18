@@ -16,10 +16,10 @@ locals {
     k3s = [
       { order = 0, filename = "write-files-k3s.yaml", content_type = "text/cloud-config", merge_type = "list(append)+dict(recurse_list,allow_delete)+str()",
         content = templatefile("${path.module}/cloud-init/write-files.tftpl.yaml", { write_files = [
-          { path = "/etc/profile.d/k3s-kubeconfig.sh", owner = "root:root", permissions = "0644", content = file("${path.module}/files/k3s-kubeconfig.sh") },
-          { path = "/etc/rancher/k3s/kubelet.config", owner = "root:root", permissions = "0644", content = file("${path.module}/files/kubelet.config") },
+          { path = "/etc/profile.d/kubeconfig.sh", owner = "root:root", permissions = "0644", content = file("${path.module}/files/k3s/kubeconfig.sh") },
+          { path = "/etc/rancher/k3s/kubelet.config", owner = "root:root", permissions = "0644", content = file("${path.module}/files/k3s/kubelet.config") },
       ] }) },
-      { order = 20, filename = "setup-k3s.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-k3s.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
+      { order = 20, filename = "setup-k3s.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/k3s/setup.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
     ]
   }
   cloudinit_cfg = {
