@@ -6,8 +6,8 @@ locals {
           { path = "/etc/profile.d/zadara-ec2.sh", owner = "root:root", permissions = "0644", content = file("${path.module}/files/zadara-ec2.sh") },
       ] }) },
       { order = 10, filename = "setup-os.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-os.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
-      { order = 11, filename = "wait-for-instance-profile.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/wait-for-instance-profile.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
-      { order = 13, filename = "setup-helm.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-helm.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
+      { order = 19, filename = "wait-for-instance-profile.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/wait-for-instance-profile.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
+      { order = 30, filename = "setup-helm.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-helm.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
     ]
     ubuntu = []
     debian = []
@@ -19,7 +19,7 @@ locals {
           { path = "/etc/profile.d/k3s-kubeconfig.sh", owner = "root:root", permissions = "0644", content = file("${path.module}/files/k3s-kubeconfig.sh") },
           { path = "/etc/rancher/k3s/kubelet.config", owner = "root:root", permissions = "0644", content = file("${path.module}/files/kubelet.config") },
       ] }) },
-      { order = 12, filename = "setup-k3s.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-k3s.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
+      { order = 20, filename = "setup-k3s.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-k3s.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
     ]
   }
   cloudinit_cfg = {
