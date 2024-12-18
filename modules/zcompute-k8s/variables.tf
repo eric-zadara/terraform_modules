@@ -36,6 +36,18 @@ variable "cluster_helm" {
   default     = {}
 }
 
+variable "pod_cidr" {
+  description = "Customize the cidr range used for k8s pods"
+  type        = string
+  default     = "10.42.0.0/16"
+}
+
+variable "service_cidr" {
+  description = "Customize the cidr range used for k8s service objects"
+  type        = string
+  default     = "10.43.0.0/16"
+}
+
 variable "tags" {
   description = "A map of tags to add to all resources"
   type        = map(string)

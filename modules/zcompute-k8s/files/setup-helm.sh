@@ -2,9 +2,14 @@
 IFS=$'\n'
 until [ -e /etc/zadara/k8s.json ]; do sleep 1s ; done
 _log() { echo "[$(date +%s)][$0]${@}" ; }
+[ ! -e /etc/zadara/k8s_helm.json ] && _log "[exit] No helm manifest found at /etc/zadara/k8s_helm.json." && exit
+
 CLUSTER_NAME="$(jq -c -r '.cluster_name' /etc/zadara/k8s.json)"
 CLUSTER_ROLE="$(jq -c -r '.cluster_role' /etc/zadara/k8s.json)"
 CLUSTER_KAPI="$(jq -c -r '.cluster_kapi' /etc/zadara/k8s.json)"
+INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+LABEL_MUTEX="dev.zadara/setup-helm"
+
 [ "${CLUSTER_ROLE}" != "control" ] && _log "[exit] Role(${CLUSTER_ROLE}) is not 'control'." && exit
 for x in '/etc/profile.d/k3s-kubeconfig.sh' '/etc/profile.d/zadara-ec2.sh'; do
 	until [ -e ${x} ]; do sleep 1s ; done
@@ -32,9 +37,9 @@ wait-for-endpoint "https://localhost:6443/cacerts"
 until [ -n "$(which kubectl)" ]; do sleep 1s ; done
 [ -z "$(which helm)" ] && curl -sfL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
-[ ! -e /etc/zadara/k8s_helm.json ] && _log "[exit] No helm manifest found." && exit
-
 until [ -e ${KUBECONFIG} ]; do sleep 1s ; done
+[ $(kubectl get nodes -l ${LABEL_MUTEX} -o name --sort-by='.metadata.creationTimestamp' 2> /dev/null | wc -l) -gt 0 ] && kubectl label nodes ${INSTANCE_ID} ${LABEL_MUTEX}- && _log "Mutex ${LABEL_MUTEX} found, exiting." && exit
+kubectl label nodes ${INSTANCE_ID} ${LABEL_MUTEX}=$(date +%s)
 for addon in $(jq -c -r 'to_entries[] | {"repository_name": .value.repository_name, "repository_url": .value.repository_url}' /etc/zadara/k8s_helm.json | sort -u); do
 	repository_name=$(echo "${addon}" | jq -c -r '.repository_name')
 	repository_url=$(echo "${addon}" | jq -c -r '.repository_url')
@@ -73,3 +78,4 @@ for addon in $(jq -c -r 'to_entries | sort_by(.value.order, .key)[]' /etc/zadara
 		fi
 	fi
 done
+kubectl label nodes ${INSTANCE_ID} ${LABEL_MUTEX}-

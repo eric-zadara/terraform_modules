@@ -3,10 +3,7 @@ IFS=$'\n'
 # Ensure no race condition for configuration file
 until [ -e /etc/zadara/k8s.json ]; do sleep 1s ; done
 [ ! -d /etc/rancher/k3s ] && mkdir -p /etc/rancher/k3s
-# # Install deps
-# Ubuntu packages
-[ -x "$(which apt-get)" ] && export DEBIAN_FRONTEND=noninteractive && apt-get -o Acquire::ForceIPv4=true -qq update && apt-get install -o Acquire::ForceIPv4=true -qq -y wget curl jq qemu-guest-agent unzip python3-pyudev python3-boto3 python3-retrying
-[ ! -x "$(which yq)" ] && wget -q https://github.com/mikefarah/yq/releases/download/v4.44.3/yq_linux_amd64 -O /usr/bin/yq && chmod +x /usr/bin/yq
+source /etc/profile.d/zadara-ec2.sh
 
 # Read configuration
 CLUSTER_NAME="$(jq -c -r '.cluster_name' /etc/zadara/k8s.json)"
@@ -34,22 +31,6 @@ wait-for-endpoint() {
 		[ $SLEEP -ge 10 ] && _log "[wait-for-endpoint] Waiting ${SLEEP}s for ${1}"
 	done
 }
-wait-for-instance-profile() {
-	SLEEP=${SLEEP:-1}
-	while :; do
-		PROFILE_NAME=$(curl --fail -s http://169.254.169.254/latest/meta-data/iam/security-credentials/)
-		[ $? -eq 0 ] && [ -n "${PROFILE_NAME:-}" ] && break
-		sleep ${SLEEP}s
-		[ $SLEEP -lt 10 ] && SLEEP=$((SLEEP + 1))
-		[ $SLEEP -ge 10 ] && _log "[wait-for-instance-profile] Waiting ${SLEEP}s for profile name"
-	done
-	
-	while ! curl -k --fail -s -o /dev/null http://169.254.169.254/latest/meta-data/iam/security-credentials/${PROFILE_NAME} > /dev/null 2>&1; do
-		sleep ${SLEEP}s
-		[ $SLEEP -lt 10 ] && SLEEP=$((SLEEP + 1))
-		[ $SLEEP -ge 10 ] && _log "[wait-for-instance-profile] Waiting ${SLEEP}s for profile contents"
-	done
-}
 set-cfg() {
 	target="config.yaml"
 	key="${1}"
@@ -58,26 +39,9 @@ set-cfg() {
 	key="${key}" val="${val}" yq -i -o yaml '.[env(key)] = env(val)' "/etc/rancher/k3s/${target}"
 }
 
-# # Setup zCompute pre-reqs
-# Install AWS CLI
-curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip" && unzip -qq awscliv2.zip && sudo ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli --update && rm awscliv2.zip && rm -r /aws
-# # Setup adjustments to support EBS CSI
-[ ! -e /etc/udev/rules.d/zadara_disk_mapper.rules ] && wget -q -O /etc/udev/rules.d/zadara_disk_mapper.rules https://raw.githubusercontent.com/zadarastorage/zadara-examples/f1cc7d1fefe654246230e544e2bea9b63329be42/k8s/eksd/eksd-packer/files/zadara_disk_mapper.rules
-[ ! -e /usr/bin/zadara_disk_mapper.py ] && wget -q -O /usr/bin/zadara_disk_mapper.py https://raw.githubusercontent.com/zadarastorage/zadara-examples/f1cc7d1fefe654246230e544e2bea9b63329be42/k8s/eksd/eksd-packer/files/zadara_disk_mapper.py
-chmod 755 /usr/bin/zadara_disk_mapper.py
-[ -e /lib/udev/rules.d/66-snapd-autoimport.rules ] && rm /lib/udev/rules.d/66-snapd-autoimport.rules
-[ -e /lib/systemd/system/systemd-udevd.service ] && sed -i '/IPAddressDeny=any/d' /lib/systemd/system/systemd-udevd.service # TODO Add to whitelist instead of removing Deny rule...
-[ $? -eq 0 ] && [ -e /lib/systemd/system/systemd-udevd.service ] && systemctl daemon-reload && systemctl restart systemd-udevd && udevadm control --reload-rules && udevadm trigger
-
 # # Setup k3s adjustments
 ln -s /var/lib/rancher/k3s/agent/etc/containerd/ /etc/containerd
 ln -s /run/k3s/containerd/ /run/containerd
-[ -x "$(which ufw)" ] && ufw disable && systemctl disable ufw && systemctl stop ufw
-
-# # Lookup own instance information
-source /etc/profile.d/zadara-ec2.sh
-wait-for-instance-profile
-INSTANCE_DATA=$(aws ec2 describe-instances --instance-ids "${K3S_NODE_NAME}" | jq -c -r --arg instance_id "${K3S_NODE_NAME}" '.Reservations[0].Instances[] | select(.InstanceId==$instance_id)')
 
 # # Figure out if new cluster, joining existing cluster, or recovering from object storage
 SETUP_STATE="join"
