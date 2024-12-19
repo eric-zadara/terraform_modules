@@ -18,6 +18,9 @@ wait-for-instance-profile() {
                 [ $SLEEP -ge 10 ] && _log "[wait-for-instance-profile] Waiting ${SLEEP}s for profile contents"
         done
 }
+_log "Checking for instance-profile"
 wait-for-instance-profile
 INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
 INSTANCE_DATA=$(aws ec2 describe-instances --instance-ids "${INSTANCE_ID}" | jq -c -r --arg instance_id "${INSTANCE_ID}" '.Reservations[0].Instances[] | select(.InstanceId==$instance_id)')
+[ $? -eq 0 ] && INSTANCE_PROFILE=$(echo "${INSTANCE_DATA}" | jq -c -r '.IamInstanceProfile.Arn') && _log "Found an instance profile [${INSTANCE_PROFILE}] for ${INSTANCE_ID}."
+_log "Proceeding. Previous line should contain instance-id and profile ARN"
