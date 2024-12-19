@@ -3,7 +3,7 @@ IFS=$'\n'
 # Ensure no race condition for configuration file
 until [ -e /etc/zadara/k8s.json ]; do sleep 1s ; done
 [ ! -d /etc/rancher/k3s ] && mkdir -p /etc/rancher/k3s
-[ -e /etc/systemd/system/cleanup-k3s.service ] && systemctl enable cleanup-k3s.service
+[ -e /etc/systemd/system/cleanup-k3s.service ] && systemctl daemon-reload && systemctl enable cleanup-k3s.service
 source /etc/profile.d/zadara-ec2.sh
 
 # Read configuration
