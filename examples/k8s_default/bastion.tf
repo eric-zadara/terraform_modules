@@ -3,6 +3,11 @@ variable "bastion_enabled" {
   description = "Enable bastion jumphost"
 }
 
+variable "bastion_ssh_source_cidr" {
+  type        = string
+  description = "(No-effect if bastion is disabled) CIDR to restrict inbound SSH access of bastion host to. ex: 0.0.0.0/0 or 8.8.8.8/32"
+}
+
 locals {
   ami_options = [
     {
@@ -33,9 +38,9 @@ locals {
       from_port   = 22
       to_port     = 22
       type        = "ingress"
-      cidr_blocks = ["0.0.0.0/0"]
+      cidr_blocks = [var.bastion_ssh_source_cidr]
     }
-    egress_ipv4_ssh = {
+    egress_ipv4 = {
       description = "Allow all outbound"
       protocol    = "all"
       from_port   = 0
