@@ -1,0 +1,12 @@
+[Unit]
+Description=Run k3s-killall on shutdown
+DefaultDependencies=no
+Before=shutdown.target umount.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/k3s-killall.sh
+RemainAfterExit=true
+
+[Install]
+WantedBy=shutdown.target

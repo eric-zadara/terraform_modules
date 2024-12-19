@@ -18,6 +18,7 @@ locals {
         content = templatefile("${path.module}/cloud-init/write-files.tftpl.yaml", { write_files = [
           { path = "/etc/profile.d/kubeconfig.sh", owner = "root:root", permissions = "0644", content = file("${path.module}/files/k3s/kubeconfig.sh") },
           { path = "/etc/rancher/k3s/kubelet.config", owner = "root:root", permissions = "0644", content = file("${path.module}/files/k3s/kubelet.config") },
+          { path = "/etc/systemd/system/cleanup-k3s.service", owner = "root:root", permissions = "0644", content = file("${path.module}/files/k3s/cleanup.service") },
       ] }) },
       { order = 20, filename = "setup-k3s.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/k3s/setup.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
     ]
