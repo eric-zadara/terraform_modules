@@ -22,7 +22,7 @@ module "k8s" {
   cluster_version = var.k8s_version
   cluster_helm = {
     gpu-operator = {
-      order           = 90
+      order           = 30
       wait            = true
       repository_name = "nvidia"
       repository_url  = "https://helm.ngc.nvidia.com/nvidia"
@@ -45,12 +45,37 @@ module "k8s" {
               tesla-25b6 = yamlencode({
                 version = "v1"
                 flags   = { migStrategy = "none" }
-                sharing = {
-                  timeSlicing = {
-                    failRequestsGreaterThanOne = false
-                    resources                  = [{ name = "nvidia.com/gpu", replicas = 17 }]
-                  }
-                }
+                sharing = { timeSlicing = {
+                  failRequestsGreaterThanOne = false
+                  resources                  = [{ name = "nvidia.com/gpu", replicas = 17 }]
+                } }
+              })
+              # Tesla A40
+              tesla-2235 = yamlencode({
+                version = "v1"
+                flags   = { migStrategy = "none" }
+                sharing = { timeSlicing = {
+                  failRequestsGreaterThanOne = false
+                  resources                  = [{ name = "nvidia.com/gpu", replicas = 49 }]
+                } }
+              })
+              # Tesla L4
+              tesla-27b8 = yamlencode({
+                version = "v1"
+                flags   = { migStrategy = "none" }
+                sharing = { timeSlicing = {
+                  failRequestsGreaterThanOne = false
+                  resources                  = [{ name = "nvidia.com/gpu", replicas = 25 }]
+                } }
+              })
+              # Tesla L40S
+              tesla-26b9 = yamlencode({
+                version = "v1"
+                flags   = { migStrategy = "none" }
+                sharing = { timeSlicing = {
+                  failRequestsGreaterThanOne = false
+                  resources                  = [{ name = "nvidia.com/gpu", replicas = 49 }]
+                } }
               })
             }
           }
