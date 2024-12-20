@@ -5,6 +5,7 @@ locals {
         content = templatefile("${path.module}/cloud-init/write-files.tftpl.yaml", { write_files = [
           { path = "/etc/profile.d/zadara-ec2.sh", owner = "root:root", permissions = "0644", content = file("${path.module}/files/zadara-ec2.sh") },
       ] }) },
+      { order = 0, filename = "mount.yaml", content_type = "text/cloud-config", merge_type = "list(append)+dict(recurse_list,allow_delete)+str()", content = file("${path.module}/cloud-init/mount.yaml") },
       { order = 10, filename = "setup-os.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-os.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
       { order = 19, filename = "wait-for-instance-profile.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/wait-for-instance-profile.sh")) : line if length(regexall("^# .*$", line)) == 0]) },
       { order = 30, filename = "setup-helm.sh", content_type = "text/x-shellscript", content = join("\n", [for line in split("\n", file("${path.module}/files/setup-helm.sh")) : line if length(regexall("^# .*$", line)) == 0]) },

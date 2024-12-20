@@ -1,0 +1,3 @@
+#cloud-config
+bootcmd:
+  - mount -o remount,errors=panic /

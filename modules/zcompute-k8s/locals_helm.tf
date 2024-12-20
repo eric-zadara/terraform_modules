@@ -142,6 +142,9 @@ locals {
               type               = "gp3"
               tagSpecification_1 = "Name={{ .PVName }}"
             }
+            mountOptions = [
+              "errors=panic"
+            ]
             annotations = {
               "storageclass.kubernetes.io/is-default-class" = "true"
             }
