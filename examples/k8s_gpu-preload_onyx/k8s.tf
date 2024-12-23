@@ -120,7 +120,7 @@ module "k8s" {
       chart           = "cert-manager-clusterissuers"
       version         = "0.0.1"
       namespace       = "cert-manager"
-      config          = { selfSigned = { enabled : True } }
+      config          = { selfSigned = { enabled = true } }
     }
     cloudnative-pg = {
       order           = 31
