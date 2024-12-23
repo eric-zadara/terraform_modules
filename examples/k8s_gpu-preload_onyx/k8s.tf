@@ -147,7 +147,7 @@ module "k8s" {
         replicaCount     = 1
         extraEnv = [{
           name  = "OLLAMA_KEEP_ALIVE"
-          value = -1
+          value = "-1"
         }]
         resources = {
           requests = { cpu = "4", memory = "15Gi", "nvidia.com/gpu" = "9" }
@@ -174,8 +174,8 @@ module "k8s" {
     onyx = {
       order           = 35
       wait            = false
-      repository_name = "eric-zadara"
-      repository_url  = "https://eric-zadara.github.io/helm_charts"
+      repository_name = "zadarastorage"
+      repository_url  = "https://zadarastorage.github.io/helm-charts"
       chart           = "onyx"
       version         = "0.0.1"
       namespace       = "onyx"
