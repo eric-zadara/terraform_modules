@@ -130,7 +130,7 @@ module "k8s" {
       chart           = "cloudnative-pg"
       version         = "0.22.0"
       namespace       = "cloudnative-pg"
-      config          = {}
+      config          = null
     }
     ollama = {
       order           = 34
@@ -143,17 +143,18 @@ module "k8s" {
       config = {
         gpu              = { enabled = true, type = "nvidia" }
         models           = { pull = ["llama3.1:8b-instruct-q8_0"] }
-        runtimeClassName = "nvidia"
         replicaCount     = 1
         extraEnv = [{
           name  = "OLLAMA_KEEP_ALIVE"
           value = "-1"
         }]
         resources = {
-          requests = { cpu = "4", memory = "15Gi", "nvidia.com/gpu" = "9" }
-          limits   = { cpu = "8", memory = "20Gi", "nvidia.com/gpu" = "9" }
+          requests = { cpu = "4", memory = "15Gi", "nvidia.com/gpu" = "8" }
+          limits   = { cpu = "8", memory = "20Gi", "nvidia.com/gpu" = "8" }
         }
         persistentVolume = { enabled = true, size = "200Gi" }
+        runtimeClassName = "nvidia"
+        tolerations = [{ effect = "NoSchedule", operator = "Exists", key = "nvidia.com/gpu" }]
         affinity = {
           nodeAffinity = {
             requiredDuringSchedulingIgnoredDuringExecution = {
@@ -254,6 +255,7 @@ module "k8s" {
       min_size     = 1
       max_size     = 3
       desired_size = 1
+      instance_type = "z8.3xlarge"
     }
     gpu = {
       role          = "worker"
