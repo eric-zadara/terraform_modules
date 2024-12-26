@@ -141,8 +141,10 @@ module "k8s" {
       version         = "1.1.2"
       namespace       = "ollama"
       config = {
-        gpu          = { enabled = true, type = "nvidia" }
-        models       = { pull = ["llama3.1:8b-instruct-q8_0"] }
+        ollama = {
+          gpu          = { enabled = true, type = "nvidia" }
+          models       = { pull = ["llama3.1:8b-instruct-q8_0"], run = ["llama3.1:8b-instruct-q8_0"] }
+        }
         replicaCount = 1
         extraEnv = [{
           name  = "OLLAMA_KEEP_ALIVE"
