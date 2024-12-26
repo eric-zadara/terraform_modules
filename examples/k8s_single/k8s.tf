@@ -40,6 +40,24 @@ module "k8s" {
       }
     }
     key_name = aws_key_pair.this.key_name
+    cloudinit_config = [
+      {
+        order        = 5
+        filename     = "cloud-config-registry.yaml"
+        content_type = "text/cloud-config"
+        content = join("\n", ["#cloud-config", yamlencode({ write_files = [
+          { path = "/etc/rancher/k3s/registries.yaml", owner = "root:root", permissions = "0640", encoding = "b64", content = base64encode(yamlencode({
+            configs = {}
+            mirrors = {
+              "*" = {}
+              "docker.io" = {
+                endpoint = ["https://mirror.gcr.io"]
+              }
+            }
+          })) },
+        ] })])
+      },
+    ]
   }
 
   node_groups = {

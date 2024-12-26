@@ -141,9 +141,9 @@ module "k8s" {
       version         = "1.1.2"
       namespace       = "ollama"
       config = {
-        gpu              = { enabled = true, type = "nvidia" }
-        models           = { pull = ["llama3.1:8b-instruct-q8_0"] }
-        replicaCount     = 1
+        gpu          = { enabled = true, type = "nvidia" }
+        models       = { pull = ["llama3.1:8b-instruct-q8_0"] }
+        replicaCount = 1
         extraEnv = [{
           name  = "OLLAMA_KEEP_ALIVE"
           value = "-1"
@@ -154,7 +154,7 @@ module "k8s" {
         }
         persistentVolume = { enabled = true, size = "200Gi" }
         runtimeClassName = "nvidia"
-        tolerations = [{ effect = "NoSchedule", operator = "Exists", key = "nvidia.com/gpu" }]
+        tolerations      = [{ effect = "NoSchedule", operator = "Exists", key = "nvidia.com/gpu" }]
         affinity = {
           nodeAffinity = {
             requiredDuringSchedulingIgnoredDuringExecution = {
@@ -182,7 +182,7 @@ module "k8s" {
       namespace       = "onyx"
       config = {
         inference = {
-          tolerations = [{ effect = "NoSchedule", operator = "Exists", key = "nvidia.com/gpu" }]
+          tolerations      = [{ effect = "NoSchedule", operator = "Exists", key = "nvidia.com/gpu" }]
           runtimeClassName = "nvidia"
           affinity = { nodeAffinity = { requiredDuringSchedulingIgnoredDuringExecution = { nodeSelectorTerms = [
             { matchExpressions = [{
@@ -197,7 +197,7 @@ module "k8s" {
           }
         }
         index = {
-          tolerations = [{ effect = "NoSchedule", operator = "Exists", key = "nvidia.com/gpu" }]
+          tolerations      = [{ effect = "NoSchedule", operator = "Exists", key = "nvidia.com/gpu" }]
           runtimeClassName = "nvidia"
           affinity = { nodeAffinity = { requiredDuringSchedulingIgnoredDuringExecution = { nodeSelectorTerms = [
             { matchExpressions = [{
@@ -243,6 +243,24 @@ module "k8s" {
       }
     }
     key_name = aws_key_pair.this.key_name
+    cloudinit_config = [
+      {
+        order        = 5
+        filename     = "cloud-config-registry.yaml"
+        content_type = "text/cloud-config"
+        content = join("\n", ["#cloud-config", yamlencode({ write_files = [
+          { path = "/etc/rancher/k3s/registries.yaml", owner = "root:root", permissions = "0640", encoding = "b64", content = base64encode(yamlencode({
+            configs = {}
+            mirrors = {
+              "*" = {}
+              "docker.io" = {
+                endpoint = ["https://mirror.gcr.io"]
+              }
+            }
+          })) },
+        ] })])
+      },
+    ]
   }
 
   node_groups = {
@@ -253,10 +271,10 @@ module "k8s" {
       desired_size = 3
     }
     worker = {
-      role         = "worker"
-      min_size     = 1
-      max_size     = 3
-      desired_size = 1
+      role          = "worker"
+      min_size      = 1
+      max_size      = 3
+      desired_size  = 1
       instance_type = "z8.3xlarge"
     }
     gpu = {
