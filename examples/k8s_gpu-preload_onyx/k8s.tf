@@ -183,6 +183,7 @@ module "k8s" {
       config = {
         inference = {
           tolerations = [{ effect = "NoSchedule", operator = "Exists", key = "nvidia.com/gpu" }]
+          runtimeClassName = "nvidia"
           affinity = { nodeAffinity = { requiredDuringSchedulingIgnoredDuringExecution = { nodeSelectorTerms = [
             { matchExpressions = [{
               key      = "nvidia.com/device-plugin.config"
@@ -197,6 +198,7 @@ module "k8s" {
         }
         index = {
           tolerations = [{ effect = "NoSchedule", operator = "Exists", key = "nvidia.com/gpu" }]
+          runtimeClassName = "nvidia"
           affinity = { nodeAffinity = { requiredDuringSchedulingIgnoredDuringExecution = { nodeSelectorTerms = [
             { matchExpressions = [{
               key      = "nvidia.com/device-plugin.config"
