@@ -156,7 +156,6 @@ module "k8s" {
         }
         persistentVolume = { enabled = true, size = "200Gi" }
         runtimeClassName = "nvidia"
-        tolerations      = [{ effect = "NoSchedule", operator = "Exists", key = "nvidia.com/gpu" }]
         affinity = {
           nodeAffinity = {
             requiredDuringSchedulingIgnoredDuringExecution = {
