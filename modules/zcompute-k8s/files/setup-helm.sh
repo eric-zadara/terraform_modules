@@ -30,12 +30,12 @@ wait-for-endpoint() {
 	done
 }
 
+[ -z "$(which helm)" ] && curl -sfL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 # Wait for loadbalancer kapi to be responsive
 wait-for-endpoint "https://${CLUSTER_KAPI}:6443/cacerts"
 # Wait for local kapi to be responsive
 wait-for-endpoint "https://localhost:6443/cacerts"
 until [ -n "$(which kubectl)" ]; do sleep 1s ; done
-[ -z "$(which helm)" ] && curl -sfL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
 until [ -e ${KUBECONFIG} ]; do sleep 1s ; done
 [ $(kubectl get nodes -l ${LABEL_MUTEX} -o name --sort-by='.metadata.creationTimestamp' 2> /dev/null | wc -l) -gt 0 ] && kubectl label nodes ${INSTANCE_ID} ${LABEL_MUTEX}- && _log "Mutex ${LABEL_MUTEX} found, exiting." && exit
@@ -47,6 +47,8 @@ for addon in $(jq -c -r 'to_entries[] | {"repository_name": .value.repository_na
 	helm repo add "${repository_name}" "${repository_url}"
 done
 helm repo update
+until [ -n "${MUTEX_NODE}" ]; do MUTEX_NODE=$(kubectl get nodes -l ${LABEL_MUTEX} -o name --sort-by='.metadata.creationTimestamp' 2> /dev/null | head -n 1 | cut -d '/' -f2-) ; sleep 1s ; done
+[ "${MUTEX_NODE}" != "${INSTANCE_ID}" ] && kubectl label nodes ${INSTANCE_ID} ${LABEL_MUTEX}- && _log "Mutex ${LABEL_MUTEX} claims holder is '${MUTEX_NODE}', but I'm ${INSTANCE_ID}. Bye" && exit
 for addon in $(jq -c -r 'to_entries | sort_by(.value.order, .key)[]' /etc/zadara/k8s_helm.json); do
 	id=$(echo "${addon}" | jq -c -r '.key')
 	repository_name=$(echo "${addon}" | jq -c -r '.value.repository_name')

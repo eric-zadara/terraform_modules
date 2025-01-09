@@ -24,7 +24,7 @@ declare -A role_map=( [control]='server' [worker]='agent' )
 [ -n "${CLUSTER_VERSION}" ] && [ "${CLUSTER_VERSION}" != "null" ] && export INSTALL_K3S_VERSION="v${CLUSTER_VERSION}+k3s1"
 
 # Functions
-_log() { echo "[$(date +%s)][$0]${@}" ; }
+_log() { echo "[$(date +%s)][$0] ${@}" ; }
 _gate() { jq -e -c -r --arg element "${1}" 'any(.[];.==$element)' <<< ${FEATURE_GATES} > /dev/null 2>&1; }
 cfg-set() {
 	target="config.yaml"
