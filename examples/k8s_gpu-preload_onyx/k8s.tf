@@ -142,8 +142,8 @@ module "k8s" {
       namespace       = "ollama"
       config = {
         ollama = {
-          gpu          = { enabled = true, type = "nvidia" }
-          models       = { pull = ["llama3.1:8b-instruct-q8_0"], run = ["llama3.1:8b-instruct-q8_0"] }
+          gpu    = { enabled = true, type = "nvidia" }
+          models = { pull = ["llama3.1:8b-instruct-q8_0"], run = ["llama3.1:8b-instruct-q8_0"] }
         }
         replicaCount = 1
         extraEnv = [{
@@ -179,7 +179,7 @@ module "k8s" {
       repository_name = "zadarastorage"
       repository_url  = "https://zadarastorage.github.io/helm-charts"
       chart           = "onyx"
-      version         = "0.0.2"
+      version         = "0.0.3"
       namespace       = "onyx"
       config = {
         inference = {
@@ -226,7 +226,6 @@ module "k8s" {
         }
       }
     }
-
   }
 
   node_group_defaults = {
