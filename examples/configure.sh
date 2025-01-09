@@ -27,12 +27,16 @@ function wizard {
 		for VAR in ${VARS[@]}; do
 			[ -e "${TFVARS_FILE}" ] && grep -qE "^$VAR +=" "${TFVARS_FILE}" && continue
 			CFG=$(awk -v VAR="${VAR}" '$0 ~ "variable \""VAR"\"",/^}/' "${FILENAME}")
-			DEFAULT=$(echo "$CFG" | awk -F'["]' '/default /{print $2}')
-			[ -n "${DEFAULT}" ] && continue
 			TYPE=$(echo "$CFG" | awk -F'[ ]' '/type /{print $NF}')
+			DEFAULT=$(echo "$CFG" | awk '/default/{print $0}')
+			DEFAULT=''
+			[ "${TYPE}" == "string" ] && DEFAULT=$(echo "$CFG" | awk -F'["]' '/default /{print $2}')
+			[ "${TYPE}" == "bool" ] && DEFAULT=$(echo "$CFG" | awk -F'[ ]' '/default /{print $NF}')
+			[ -z "${DEFAULT:-}" ] && DEFAULT=$(echo "$CFG" | awk '/default /{match($0, /= (.*)$/, arr); print arr[1]}')
 			DESCRIPTION=$(echo "$CFG" | awk -F'["]' '/description /{print $2}')
 			SENSITIVE=$(echo "$CFG" | awk -F'[ ]' '/sensitive /{print $NF}')
 			echo -e "# ${VAR}(${TYPE}) => ${DESCRIPTION}"
+			[ -n "${DEFAULT}" ] && echo -e "## Skipping. Default '${DEFAULT}' is defined. Value can be manually overridden by adding to ${TFVARS_FILE}." && continue
 			[ "${SENSITIVE}" == "true" ] && read -s -p "${VAR}> " value && echo
 			[ "${SENSITIVE}" != "true" ] && read -p "${VAR}> " value
 			case "${TYPE}" in
