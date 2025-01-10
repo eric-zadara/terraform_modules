@@ -110,7 +110,7 @@ module "k8s" {
       chart           = "cert-manager"
       version         = "v1.15.3"
       namespace       = "cert-manager"
-      config          = { installCRDs = true }
+      config          = { crds = { enabled = true } }
     }
     cert-manager-clusterissuers = {
       order           = 32
