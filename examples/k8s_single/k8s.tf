@@ -10,8 +10,8 @@ variable "k8s_version" {
 }
 
 module "k8s" {
-  source = "github.com/eric-zadara/terraform_modules//modules/zcompute-k8s?ref=master"
-  # It's recommended to change `master` to a specific release version to prevent unexpected changes
+  source = "github.com/zadarastorage/terraform-zcompute-k8s?ref=main"
+  # It's recommended to change `main` to a specific release version to prevent unexpected changes
 
   vpc_id  = module.vpc.vpc_id
   subnets = module.vpc.private_subnets

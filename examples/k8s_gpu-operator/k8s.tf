@@ -10,8 +10,8 @@ variable "k8s_version" {
 }
 
 module "k8s" {
-  source = "github.com/eric-zadara/terraform_modules//modules/zcompute-k8s?ref=master"
-  # It's recommended to change `master` to a specific release version to prevent unexpected changes
+  source = "github.com/zadarastorage/terraform-zcompute-k8s?ref=main"
+  # It's recommended to change `main` to a specific release version to prevent unexpected changes
 
   vpc_id  = module.vpc.vpc_id
   subnets = module.vpc.private_subnets
@@ -153,13 +153,13 @@ module "k8s" {
       desired_size = 1
     }
     gpu = {
-      role          = "worker"
-      min_size      = 0
-      max_size      = 3
-      desired_size  = 1
-      root_volume_size     = 200
-      instance_type = "A02.4xLarge" # TODO Adjust to formalized instance_type name
-      image_id      = flatten(data.aws_ami_ids.gpu-ubuntu[*].ids)[0]
+      role             = "worker"
+      min_size         = 0
+      max_size         = 3
+      desired_size     = 1
+      root_volume_size = 200
+      instance_type    = "A02.4xLarge" # TODO Adjust to formalized instance_type name
+      image_id         = flatten(data.aws_ami_ids.gpu-ubuntu[*].ids)[0]
       k8s_taints = {
         "nvidia.com/gpu" = "true:NoSchedule"
       }

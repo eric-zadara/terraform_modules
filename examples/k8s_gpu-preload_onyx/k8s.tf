@@ -10,8 +10,8 @@ variable "k8s_version" {
 }
 
 module "k8s" {
-  source = "github.com/eric-zadara/terraform_modules//modules/zcompute-k8s?ref=master"
-  # It's recommended to change `master` to a specific release version to prevent unexpected changes
+  source = "github.com/zadarastorage/terraform-zcompute-k8s?ref=main"
+  # It's recommended to change `main` to a specific release version to prevent unexpected changes
 
   vpc_id  = module.vpc.vpc_id
   subnets = module.vpc.private_subnets
@@ -179,7 +179,7 @@ module "k8s" {
       repository_name = "zadarastorage"
       repository_url  = "https://zadarastorage.github.io/helm-charts"
       chart           = "onyx"
-      version         = "0.0.6"
+      version         = "0.0.7"
       namespace       = "onyx"
       config = {
         inference = {
@@ -216,7 +216,7 @@ module "k8s" {
           enabled = true
           annotations = {
             "cert-manager.io/cluster-issuer"                   = "selfsigned"
-            "traefik.ingress.kubernetes.io/router.entrypoints" = "websecure"
+            "traefik.ingress.kubernetes.io/router.entrypoints" = "web,websecure"
           }
           tls = true
         }
@@ -278,12 +278,12 @@ module "k8s" {
       instance_type = "z8.3xlarge"
     }
     gpu = {
-      role          = "worker"
-      min_size      = 0
-      max_size      = 3
-      desired_size  = 1
-      root_volume_size     = 200
-      instance_type = "A02.4xLarge" # TODO Adjust to formalized instance_type name
+      role             = "worker"
+      min_size         = 0
+      max_size         = 3
+      desired_size     = 1
+      root_volume_size = 200
+      instance_type    = "A02.4xLarge" # TODO Adjust to formalized instance_type name
       k8s_taints = {
         "nvidia.com/gpu" = "true:NoSchedule"
       }
