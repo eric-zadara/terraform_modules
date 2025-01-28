@@ -179,7 +179,7 @@ module "k8s" {
       repository_name = "zadarastorage"
       repository_url  = "https://zadarastorage.github.io/helm-charts"
       chart           = "onyx"
-      version         = "0.0.7"
+      version         = "0.0.8"
       namespace       = "onyx"
       config = {
         inference = {
